@@ -3,22 +3,19 @@ extends ../layout
 block content
   .pb-2.mt-2.mb-4.border-bottom
     h2
-      i.fas.fa-network-wired.fa-sm.iconpadding(style="color: #6f42c1")
+      i.fas.fa-network-wired.fa-sm.iconpadding(style='color: #6f42c1')
       | Together AI - One-shot LLM API call example
 
-  .btn-group.mb-4.d-flex(role="group")
-    a.btn.btn-primary.w-100(href="https://api.together.ai", target="_blank")
+  .btn-group.mb-4.d-flex(role='group')
+    a.btn.btn-primary.w-100(href='https://api.together.ai', target='_blank')
       i.fas.fa-table-columns.fa-sm.iconpadding
       | Together AI Dashboard
-    a.btn.btn-primary.w-100(
-      href="https://docs.together.ai/docs/inference",
-      target="_blank"
-    )
+    a.btn.btn-primary.w-100(href='https://docs.together.ai/docs/inference', target='_blank')
       i.fas.fa-info.fa-sm.iconpadding
       | Together AI Docs
     a.btn.btn-primary.w-100(
-      href="https://docs.together.ai/reference/chat-completions",
-      target="_blank"
+      href='https://docs.together.ai/reference/chat-completions',
+      target='_blank'
     )
       i.fas.fa-book.fa-sm.iconpadding
       | API Reference
@@ -28,18 +25,13 @@ block content
 
   .row
     .col-md-8.col-lg-6
-      form(method="POST", action="/ai/togetherai-classifier")
-        input(type="hidden", name="_csrf", value=_csrf)
+      form(method='POST', action='/ai/togetherai-classifier')
+        input(type='hidden', name='_csrf', value=_csrf)
         .mb-3
-          label(for="inputText") Customer message
-          textarea#inputText.form-control(
-            name="inputText",
-            maxlength="300",
-            rows="4",
-            required
-          )= input
+          label(for='inputText') Customer message
+          textarea#inputText.form-control(name='inputText', maxlength='300', rows='4', required)= input
           .form-text.text-muted Maximum 300 characters.
-        button.btn.btn-primary(type="submit") Classify Department
+        button.btn.btn-primary(type='submit') Classify Department
 
       if error
         .alert.alert-danger.mt-3= error
@@ -48,8 +40,8 @@ block content
         .mt-4
           h5.text-secondary.mb-3 Classification (Routing) Result
           .d-flex.align-items-center.mb-2
-            i.fas.fa-tag.me-2(style="color: #6f42c1")
-            if result.department && result.department !== "Unknown"
+            i.fas.fa-tag.me-2(style='color: #6f42c1')
+            if result.department && result.department !== 'Unknown'
               span.fw-bold.text-primary.fs-4 Department:
               span.ms-2.fs-4= result.department
             else
@@ -61,7 +53,7 @@ block content
           if result.systemPrompt
             details
               summary Show system prompt
-              pre.mt-2(style="white-space: pre-wrap; word-break: break-word")= result.systemPrompt
+              pre.mt-2(style='white-space: pre-wrap; word-break: break-word')= result.systemPrompt
           if result.userPrompt
             details
               summary Show user prompt

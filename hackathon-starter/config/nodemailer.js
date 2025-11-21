@@ -1,4 +1,4 @@
-const nodemailer = require("nodemailer");
+const nodemailer = require('nodemailer');
 
 /**
  * Helper Function to Send Mail.
@@ -24,9 +24,9 @@ exports.sendMail = (settings) => {
       });
     })
     .catch((err) => {
-      if (err.message === "self signed certificate in certificate chain") {
+      if (err.message === 'self signed certificate in certificate chain') {
         console.log(
-          "WARNING: Self signed certificate in certificate chain. Retrying with the self signed certificate. Use a valid certificate if in production.",
+          'WARNING: Self signed certificate in certificate chain. Retrying with the self signed certificate. Use a valid certificate if in production.',
         );
         transportConfig.tls = transportConfig.tls || {};
         transportConfig.tls.rejectUnauthorized = false;

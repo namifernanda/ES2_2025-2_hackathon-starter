@@ -1,33 +1,26 @@
-const crypto = require("crypto");
-const fs = require("fs");
-const multer = require("multer");
-const path = require("path");
-const { PDFLoader } = require("@langchain/community/document_loaders/fs/pdf");
-const { RecursiveCharacterTextSplitter } = require("@langchain/textsplitters");
-const {
-  HuggingFaceInferenceEmbeddings,
-} = require("@langchain/community/embeddings/hf");
-const {
-  MongoDBAtlasVectorSearch,
-  MongoDBAtlasSemanticCache,
-} = require("@langchain/mongodb");
-const { MongoDBStore } = require("@langchain/mongodb");
-const {
-  ChatTogetherAI,
-} = require("@langchain/community/chat_models/togetherai");
-const { HumanMessage } = require("@langchain/core/messages");
-const { CacheBackedEmbeddings } = require("langchain/embeddings/cache_backed");
-const { MongoClient } = require("mongodb");
+const crypto = require('crypto');
+const fs = require('fs');
+const multer = require('multer');
+const path = require('path');
+const { PDFLoader } = require('@langchain/community/document_loaders/fs/pdf');
+const { RecursiveCharacterTextSplitter } = require('@langchain/textsplitters');
+const { HuggingFaceInferenceEmbeddings } = require('@langchain/community/embeddings/hf');
+const { MongoDBAtlasVectorSearch, MongoDBAtlasSemanticCache } = require('@langchain/mongodb');
+const { MongoDBStore } = require('@langchain/mongodb');
+const { ChatTogetherAI } = require('@langchain/community/chat_models/togetherai');
+const { HumanMessage } = require('@langchain/core/messages');
+const { CacheBackedEmbeddings } = require('langchain/embeddings/cache_backed');
+const { MongoClient } = require('mongodb');
 // eslint-disable-next-line import/extensions
-const pdfjsLib = require("pdfjs-dist/legacy/build/pdf.mjs");
+const pdfjsLib = require('pdfjs-dist/legacy/build/pdf.mjs');
 
 /**
  * GET /ai
  * List of AI examples.
  */
 exports.getAi = (req, res) => {
-  res.render("ai/index", {
-    title: "AI Examples",
+  res.render('ai/index', {
+    title: 'AI Examples',
   });
 };
 
@@ -35,10 +28,10 @@ exports.getAi = (req, res) => {
  * Helper function to ensure the vector search index exists for RAG Boilerplate
  */
 // RAG collection names
-const RAG_CHUNKS = "rag_chunks";
-const DOC_EMBEDDINGS_CACHE = "doc_emb_cache";
-const QUERY_EMBEDDINGS_CACHE = "query_emb_cache";
-const LLM_SEMANTIC_CACHE = "llm_sem_cache";
+const RAG_CHUNKS = 'rag_chunks';
+const DOC_EMBEDDINGS_CACHE = 'doc_emb_cache';
+const QUERY_EMBEDDINGS_CACHE = 'query_emb_cache';
+const LLM_SEMANTIC_CACHE = 'llm_sem_cache';
 
 // Initialization status flags
 let ragFolderReady = false;
@@ -46,8 +39,8 @@ let ragCollectionReady = false;
 let vectorIndexConfigured = false;
 
 function prepareRagFolder() {
-  const inputDir = path.join(__dirname, "../rag_input");
-  const ingestedDir = path.join(inputDir, "ingested");
+  const inputDir = path.join(__dirname, '../rag_input');
+  const ingestedDir = path.join(inputDir, 'ingested');
   if (!fs.existsSync(inputDir)) {
     fs.mkdirSync(inputDir, { recursive: true });
   }
@@ -61,22 +54,20 @@ function prepareRagFolder() {
  * Helper function to create vector search collections in MongoDB Atlas
  */
 async function createCollectionForVectorSearch(db, collectionName, indexes) {
-  const collections = await db
-    .listCollections({ name: collectionName })
-    .toArray();
+  const collections = await db.listCollections({ name: collectionName }).toArray();
   if (collections.length === 0) {
     const collection = await db.createCollection(collectionName);
     console.log(`Collection ${collectionName} created.`);
     await collection.createSearchIndex({
-      name: "default",
+      name: 'default',
       definition: {
         mappings: {
           dynamic: true,
           fields: {
             embedding: {
               dimensions: 1024,
-              similarity: "cosine",
-              type: "knnVector",
+              similarity: 'cosine',
+              type: 'knnVector',
             },
           },
         },
@@ -106,14 +97,10 @@ async function setupRagCollection(db) {
     { fileHash: 1 },
     { fileName: 1 },
   ]); // for the RAG chunks from input documents
-  await createCollectionForVectorSearch(db, LLM_SEMANTIC_CACHE, [
-    { llm_string: 1, prompt: 1 },
-  ]); // for the LLM semantic cache so we can reduce LLM calls and related costs
+  await createCollectionForVectorSearch(db, LLM_SEMANTIC_CACHE, [{ llm_string: 1, prompt: 1 }]); // for the LLM semantic cache so we can reduce LLM calls and related costs
 
   // Create the document embedding cache collection if it doesn't exist
-  const docCacheCollections = await db
-    .listCollections({ name: DOC_EMBEDDINGS_CACHE })
-    .toArray();
+  const docCacheCollections = await db.listCollections({ name: DOC_EMBEDDINGS_CACHE }).toArray();
   if (docCacheCollections.length === 0) {
     await db.createCollection(DOC_EMBEDDINGS_CACHE);
     console.log(
@@ -127,22 +114,16 @@ async function setupRagCollection(db) {
     .toArray();
   if (queryCacheCollections.length === 0) {
     await db.createCollection(QUERY_EMBEDDINGS_CACHE);
-    console.log(
-      `Created collection ${QUERY_EMBEDDINGS_CACHE} for query embedding cache with TTL.`,
-    );
+    console.log(`Created collection ${QUERY_EMBEDDINGS_CACHE} for query embedding cache with TTL.`);
 
     // Set a TTL index (60 days) for automatic expiration
     await db
       .collection(QUERY_EMBEDDINGS_CACHE)
       .createIndex({ createdAt: 1 }, { expireAfterSeconds: 5184000 }); // 60 days
-    console.log(
-      "Created TTL index on query embedding cache (expiration: 60 days).",
-    );
+    console.log('Created TTL index on query embedding cache (expiration: 60 days).');
   }
   ragCollectionReady = true;
-  console.log(
-    "Vector Search and Embedding Cache Collections have been set up.",
-  );
+  console.log('Vector Search and Embedding Cache Collections have been set up.');
   return ragCollection;
 }
 
@@ -151,12 +132,10 @@ async function setupRagCollection(db) {
  */
 async function setVectorIndex(collection, indexDefinition) {
   const existingIndexes = await collection.listSearchIndexes().toArray();
-  const defaultIndex = existingIndexes.find(
-    (index) => index.name === "default",
-  );
+  const defaultIndex = existingIndexes.find((index) => index.name === 'default');
   if (!defaultIndex) {
     await collection.createSearchIndex({
-      name: "default",
+      name: 'default',
       definition: indexDefinition,
     });
     console.log(
@@ -166,7 +145,7 @@ async function setVectorIndex(collection, indexDefinition) {
     defaultIndex.latestDefinition?.mappings?.fields?.embedding?.dimensions !==
     indexDefinition.mappings.fields.embedding.dimensions
   ) {
-    await collection.updateSearchIndex("default", indexDefinition);
+    await collection.updateSearchIndex('default', indexDefinition);
     console.log(
       `Updated vector search index for ${collection.collectionName} with dimensions: ${indexDefinition.mappings.fields.embedding.dimensions}.`,
     );
@@ -189,8 +168,8 @@ async function configureVectorIndex(db) {
         fields: {
           embedding: {
             dimensions: sampleDoc.embedding.length,
-            similarity: "cosine",
-            type: "knnVector",
+            similarity: 'cosine',
+            type: 'knnVector',
           },
         },
       },
@@ -199,7 +178,7 @@ async function configureVectorIndex(db) {
     await setVectorIndex(db.collection(LLM_SEMANTIC_CACHE), indexDefinition);
     vectorIndexConfigured = true;
   } else {
-    console.error("No embeddings found yet; cannot update vector index.");
+    console.error('No embeddings found yet; cannot update vector index.');
   }
 }
 
@@ -220,7 +199,7 @@ exports.getRag = async (req, res) => {
     const collection = ragCollectionReady
       ? db.collection(RAG_CHUNKS)
       : await setupRagCollection(db);
-    ingestedFiles = await collection.distinct("fileName");
+    ingestedFiles = await collection.distinct('fileName');
   } catch (err) {
     console.log(err);
     ingestedFiles = [];
@@ -228,12 +207,12 @@ exports.getRag = async (req, res) => {
     await client.close();
   }
 
-  res.render("ai/rag", {
-    title: "Retrieval-Augmented Generation (RAG) Demo",
+  res.render('ai/rag', {
+    title: 'Retrieval-Augmented Generation (RAG) Demo',
     ingestedFiles,
     ragResponse: null,
     llmResponse: null,
-    question: "",
+    question: '',
     maxInputLength: 500,
   });
 };
@@ -244,20 +223,20 @@ exports.getRag = async (req, res) => {
  */
 exports.postRagIngest = async (req, res) => {
   if (!ragFolderReady) prepareRagFolder();
-  const inputDir = path.join(__dirname, "../rag_input");
-  const ingestedDir = path.join(inputDir, "ingested");
+  const inputDir = path.join(__dirname, '../rag_input');
+  const ingestedDir = path.join(inputDir, 'ingested');
 
   // Get the list of PDF files in the input directory
   const files = fs
     .readdirSync(inputDir)
-    .filter((f) => f.endsWith(".pdf"))
-    .filter((f) => !f.includes("ingested")); // Exclude anything from the ingested directory
+    .filter((f) => f.endsWith('.pdf'))
+    .filter((f) => !f.includes('ingested')); // Exclude anything from the ingested directory
 
   if (files.length === 0) {
-    req.flash("info", {
-      msg: "No PDF files found in the input directory. Add files to ./rag_input directory to process.",
+    req.flash('info', {
+      msg: 'No PDF files found in the input directory. Add files to ./rag_input directory to process.',
     });
-    return res.redirect("/ai/rag");
+    return res.redirect('/ai/rag');
   }
 
   const skipped = [];
@@ -283,7 +262,7 @@ exports.postRagIngest = async (req, res) => {
 
       const filePath = path.join(inputDir, file);
       const fileBuffer = fs.readFileSync(filePath);
-      const hash = crypto.createHash("sha256").update(fileBuffer).digest("hex");
+      const hash = crypto.createHash('sha256').update(fileBuffer).digest('hex');
 
       // Check if this file has already been processed to avoid duplicate data in the
       // vector DB. We check for a matching hash in case the same file was processed
@@ -343,16 +322,12 @@ exports.postRagIngest = async (req, res) => {
         );
 
         // Create embeddings and add them to MongoDB
-        await MongoDBAtlasVectorSearch.fromDocuments(
-          chunksWithMetadata,
-          cacheBackedEmbeddings,
-          {
-            collection,
-            indexName: "default",
-            textKey: "text",
-            embeddingKey: "embedding",
-          },
-        );
+        await MongoDBAtlasVectorSearch.fromDocuments(chunksWithMetadata, cacheBackedEmbeddings, {
+          collection,
+          indexName: 'default',
+          textKey: 'text',
+          embeddingKey: 'embedding',
+        });
 
         // If this is the first file processed, resize the vector index to match the output
         // dimensions of the embedding model. The vector index allows us to perform vector search
@@ -371,27 +346,27 @@ exports.postRagIngest = async (req, res) => {
     }, Promise.resolve());
 
     if (processed.length > 0 && skipped.length > 0) {
-      req.flash("success", {
-        msg: `Successfully ingested ${processed.length} file(s): ${processed.join(", ")}. Skipped ${skipped.length} existing file(s): ${skipped.join(", ")}`,
+      req.flash('success', {
+        msg: `Successfully ingested ${processed.length} file(s): ${processed.join(', ')}. Skipped ${skipped.length} existing file(s): ${skipped.join(', ')}`,
       });
     } else if (processed.length > 0) {
-      req.flash("success", {
-        msg: `Successfully ingested ${processed.length} file(s): ${processed.join(", ")}`,
+      req.flash('success', {
+        msg: `Successfully ingested ${processed.length} file(s): ${processed.join(', ')}`,
       });
     } else if (skipped.length > 0) {
-      req.flash("info", {
-        msg: `No new files to ingest. ${skipped.length} file(s) have already been processed: ${skipped.join(", ")}`,
+      req.flash('info', {
+        msg: `No new files to ingest. ${skipped.length} file(s) have already been processed: ${skipped.join(', ')}`,
       });
     }
   } catch (err) {
-    console.error("Error during ingestion:", err);
-    req.flash("errors", {
+    console.error('Error during ingestion:', err);
+    req.flash('errors', {
       msg: `Error during ingestion: ${err.message}`,
     });
   } finally {
     await client.close();
   }
-  res.redirect("/ai/rag");
+  res.redirect('/ai/rag');
 };
 
 /**
@@ -399,10 +374,10 @@ exports.postRagIngest = async (req, res) => {
  * Accepts a question, runs RAG and non-RAG queries, and returns both responses.
  */
 exports.postRagAsk = async (req, res) => {
-  const question = (req.body.question || "").slice(0, 500);
+  const question = (req.body.question || '').slice(0, 500);
   if (!question.trim()) {
-    req.flash("errors", { msg: "Please enter a question." });
-    return res.redirect("/ai/rag");
+    req.flash('errors', { msg: 'Please enter a question.' });
+    return res.redirect('/ai/rag');
   }
 
   const client = new MongoClient(process.env.MONGODB_URI);
@@ -421,12 +396,12 @@ exports.postRagAsk = async (req, res) => {
     const llmSemCacheCollection = db.collection(LLM_SEMANTIC_CACHE);
 
     // Get list of ingested files for display in the frontend
-    const ingestedFiles = await collection.distinct("fileName");
+    const ingestedFiles = await collection.distinct('fileName');
     if (ingestedFiles.length === 0) {
-      req.flash("errors", {
-        msg: "No files have been indexed for RAG. Please upload your relevant PDF files to the ./rag_input directory and ingest them before asking questions.",
+      req.flash('errors', {
+        msg: 'No files have been indexed for RAG. Please upload your relevant PDF files to the ./rag_input directory and ingest them before asking questions.',
       });
-      return res.redirect("/ai/rag");
+      return res.redirect('/ai/rag');
     }
 
     // Check and configure the vector index to address the potential edge case when
@@ -436,23 +411,23 @@ exports.postRagAsk = async (req, res) => {
     }
 
     // Check if the vector search index is ready
-    const ragCollectionStatus = (
-      await collection.listSearchIndexes().toArray()
-    ).find((index) => index.name === "default").status;
-    if (ragCollectionStatus !== "READY") {
-      req.flash("errors", {
+    const ragCollectionStatus = (await collection.listSearchIndexes().toArray()).find(
+      (index) => index.name === 'default',
+    ).status;
+    if (ragCollectionStatus !== 'READY') {
+      req.flash('errors', {
         msg: `RAG search index is not ready - status: ${ragCollectionStatus}. Please try again in a few minutes.`,
       });
-      return res.redirect("/ai/rag");
+      return res.redirect('/ai/rag');
     }
     const llmSemCacheCollectionStatus = (
       await llmSemCacheCollection.listSearchIndexes().toArray()
-    ).find((index) => index.name === "default").status;
-    if (llmSemCacheCollectionStatus !== "READY") {
-      req.flash("errors", {
+    ).find((index) => index.name === 'default').status;
+    if (llmSemCacheCollectionStatus !== 'READY') {
+      req.flash('errors', {
         msg: `LLM semantic cache search index is not ready - status: ${llmSemCacheCollectionStatus}. Please try again in a few minutes.`,
       });
-      return res.redirect("/ai/rag");
+      return res.redirect('/ai/rag');
     }
 
     // Set up vector store and embeddings
@@ -477,9 +452,9 @@ exports.postRagAsk = async (req, res) => {
     );
     const vectorStore = new MongoDBAtlasVectorSearch(cacheBackedEmbeddings, {
       collection,
-      indexName: "default",
-      textKey: "text",
-      embeddingKey: "embedding",
+      indexName: 'default',
+      textKey: 'text',
+      embeddingKey: 'embedding',
     });
 
     const llmSemanticCache = new MongoDBAtlasSemanticCache(
@@ -488,7 +463,7 @@ exports.postRagAsk = async (req, res) => {
       { scoreThreshold: 0.99 }, // Optional similarity threshold settings
     );
     const relevantDocs = await vectorStore.similaritySearch(question, 8); // Retrieve top 8 relevant chunks
-    const context = relevantDocs.map((doc) => doc.pageContent).join("\n---\n");
+    const context = relevantDocs.map((doc) => doc.pageContent).join('\n---\n');
 
     // Set up LLM
     const llm = new ChatTogetherAI({
@@ -510,15 +485,15 @@ exports.postRagAsk = async (req, res) => {
 
     // Before parsing the results, check to see if we have a valid response so we don't crash
     if (!results?.generations?.length || results.generations.length < 2) {
-      req.flash("errors", {
+      req.flash('errors', {
         msg: `Unable to get a valid response from the LLM. Please try again.`,
       });
-      return res.redirect("/ai/rag");
+      return res.redirect('/ai/rag');
     }
     const ragResponse = results.generations[0][0].text;
     const llmResponse = results.generations[1][0].text;
-    res.render("ai/rag", {
-      title: "Retrieval-Augmented Generation (RAG) Demo",
+    res.render('ai/rag', {
+      title: 'Retrieval-Augmented Generation (RAG) Demo',
       ingestedFiles,
       ragResponse,
       llmResponse,
@@ -526,9 +501,9 @@ exports.postRagAsk = async (req, res) => {
       maxInputLength: 500,
     });
   } catch (error) {
-    console.error("RAG Error:", error);
-    req.flash("errors", { msg: `Error: ${error.message}` });
-    res.redirect("/ai/rag");
+    console.error('RAG Error:', error);
+    req.flash('errors', { msg: `Error: ${error.message}` });
+    res.redirect('/ai/rag');
   } finally {
     await client.close();
   }
@@ -539,11 +514,11 @@ exports.postRagAsk = async (req, res) => {
  * OpenAI Moderation API example.
  */
 exports.getOpenAIModeration = (req, res) => {
-  res.render("ai/openai-moderation", {
-    title: "OpenAI Input Moderation",
+  res.render('ai/openai-moderation', {
+    title: 'OpenAI Input Moderation',
     result: null,
     error: null,
-    input: "",
+    input: '',
   });
 };
 
@@ -553,24 +528,24 @@ exports.getOpenAIModeration = (req, res) => {
  */
 exports.postOpenAIModeration = async (req, res) => {
   const openAiKey = process.env.OPENAI_API_KEY;
-  const inputText = req.body.inputText || "";
+  const inputText = req.body.inputText || '';
   let result = null;
   let error = null;
 
   if (!openAiKey) {
-    error = "OpenAI API key is not set in environment variables.";
+    error = 'OpenAI API key is not set in environment variables.';
   } else if (!inputText.trim()) {
-    error = "Text for input modaration check:";
+    error = 'Text for input modaration check:';
   } else {
     try {
-      const response = await fetch("https://api.openai.com/v1/moderations", {
-        method: "POST",
+      const response = await fetch('https://api.openai.com/v1/moderations', {
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
           Authorization: `Bearer ${openAiKey}`,
         },
         body: JSON.stringify({
-          model: "text-moderation-latest",
+          model: 'text-moderation-latest',
           input: inputText,
         }),
       });
@@ -585,13 +560,13 @@ exports.postOpenAIModeration = async (req, res) => {
         result = data.results && data.results[0];
       }
     } catch (err) {
-      console.error("OpenAI Moderation API Error:", err);
-      error = "Failed to call OpenAI Moderation API.";
+      console.error('OpenAI Moderation API Error:', err);
+      error = 'Failed to call OpenAI Moderation API.';
     }
   }
 
-  res.render("ai/openai-moderation", {
-    title: "OpenAI Moderation API",
+  res.render('ai/openai-moderation', {
+    title: 'OpenAI Moderation API',
     result,
     error,
     input: inputText,
@@ -605,17 +580,17 @@ exports.postOpenAIModeration = async (req, res) => {
 
 // Shared Together AI API caller
 const callTogetherAiApi = async (apiRequestBody, apiKey) => {
-  const response = await fetch("https://api.together.xyz/v1/chat/completions", {
-    method: "POST",
+  const response = await fetch('https://api.together.xyz/v1/chat/completions', {
+    method: 'POST',
     headers: {
-      "Content-Type": "application/json",
+      'Content-Type': 'application/json',
       Authorization: `Bearer ${apiKey}`,
     },
     body: JSON.stringify(apiRequestBody),
   });
   if (!response.ok) {
     const errData = await response.json().catch(() => ({}));
-    console.error("Together AI API Error Response:", errData);
+    console.error('Together AI API Error Response:', errData);
     const errorMessage =
       errData.error && errData.error.message
         ? errData.error.message
@@ -630,14 +605,14 @@ const createVisionLLMRequestBody = (dataUrl, model) => ({
   model,
   messages: [
     {
-      role: "user",
+      role: 'user',
       content: [
         {
-          type: "text",
-          text: "What is in this image?",
+          type: 'text',
+          text: 'What is in this image?',
         },
         {
-          type: "image_url",
+          type: 'image_url',
           image_url: {
             url: dataUrl,
           },
@@ -657,15 +632,15 @@ const extractVisionAnalysis = (data) => {
   ) {
     return data.choices[0].message.content;
   }
-  return "No vision analysis available";
+  return 'No vision analysis available';
 };
 
 // Classifier-specific functions
 const createClassifierLLMRequestBody = (inputText, model, systemPrompt) => ({
   model,
   messages: [
-    { role: "system", content: systemPrompt },
-    { role: "user", content: inputText },
+    { role: 'system', content: systemPrompt },
+    { role: 'user', content: inputText },
   ],
   temperature: 0,
   max_tokens: 64,
@@ -682,7 +657,7 @@ const extractClassifierResponse = (content) => {
         ({ department } = parsed);
       }
     } catch (err) {
-      console.log("Failed to parse JSON from TogetherAI API response:", err);
+      console.log('Failed to parse JSON from TogetherAI API response:', err);
       // fallback: try to extract department manually
       const match = content.match(/"department"\s*:\s*"([^"]+)"/);
       if (match) {
@@ -690,7 +665,7 @@ const extractClassifierResponse = (content) => {
       }
     }
   }
-  return department || "Unknown";
+  return department || 'Unknown';
 };
 
 // System prompt for the classifier
@@ -722,14 +697,14 @@ const createImageUploader = () => {
   return multer({
     storage: memoryStorage,
     limits: { fileSize: 10 * 1024 * 1024 }, // 10MB limit
-  }).single("image");
+  }).single('image');
 };
 
 exports.imageUploadMiddleware = (req, res, next) => {
   const uploadToMemory = createImageUploader();
   uploadToMemory(req, res, (err) => {
     if (err) {
-      console.error("Upload error:", err);
+      console.error('Upload error:', err);
       return res.status(500).json({ error: err.message });
     }
     next();
@@ -737,7 +712,7 @@ exports.imageUploadMiddleware = (req, res, next) => {
 };
 
 const createImageDataUrl = (file) => {
-  const base64Image = file.buffer.toString("base64");
+  const base64Image = file.buffer.toString('base64');
   return `data:${file.mimetype};base64,${base64Image}`;
 };
 
@@ -746,8 +721,8 @@ const createImageDataUrl = (file) => {
  * Together AI Camera Analysis Example
  */
 exports.getTogetherAICamera = (req, res) => {
-  res.render("ai/togetherai-camera", {
-    title: "Together.ai Camera Analysis",
+  res.render('ai/togetherai-camera', {
+    title: 'Together.ai Camera Analysis',
     togetherAiModel: process.env.TOGETHERAI_VISION_MODEL,
   });
 };
@@ -758,13 +733,13 @@ exports.getTogetherAICamera = (req, res) => {
  */
 exports.postTogetherAICamera = async (req, res) => {
   if (!req.file) {
-    return res.status(400).json({ error: "No image provided" });
+    return res.status(400).json({ error: 'No image provided' });
   }
   try {
     const togetherAiKey = process.env.TOGETHERAI_API_KEY;
     const togetherAiModel = process.env.TOGETHERAI_VISION_MODEL;
     if (!togetherAiKey) {
-      return res.status(500).json({ error: "TogetherAI API key is not set" });
+      return res.status(500).json({ error: 'TogetherAI API key is not set' });
     }
     const dataUrl = createImageDataUrl(req.file);
     const apiRequestBody = createVisionLLMRequestBody(dataUrl, togetherAiModel);
@@ -774,7 +749,7 @@ exports.postTogetherAICamera = async (req, res) => {
     // console.log('Vision analysis completed:', analysis);
     res.json({ analysis });
   } catch (error) {
-    console.error("Error analyzing image:", error);
+    console.error('Error analyzing image:', error);
     res.status(500).json({ error: `Error analyzing image: ${error.message}` });
   }
 };
@@ -784,12 +759,12 @@ exports.postTogetherAICamera = async (req, res) => {
  * Together AI / LLM API Example.
  */
 exports.getTogetherAIClassifier = (req, res) => {
-  res.render("ai/togetherai-classifier", {
-    title: "Together.ai/LLM Department Classifier",
+  res.render('ai/togetherai-classifier', {
+    title: 'Together.ai/LLM Department Classifier',
     result: null,
     togetherAiModel: process.env.TOGETHERAI_MODEL,
     error: null,
-    input: "",
+    input: '',
   });
 };
 
@@ -804,15 +779,15 @@ exports.getTogetherAIClassifier = (req, res) => {
 exports.postTogetherAIClassifier = async (req, res) => {
   const togetherAiKey = process.env.TOGETHERAI_API_KEY;
   const togetherAiModel = process.env.TOGETHERAI_MODEL;
-  const inputText = (req.body.inputText || "").slice(0, 300);
+  const inputText = (req.body.inputText || '').slice(0, 300);
   let result = null;
   let error = null;
   if (!togetherAiKey) {
-    error = "TogetherAI API key is not set in environment variables.";
+    error = 'TogetherAI API key is not set in environment variables.';
   } else if (!togetherAiModel) {
-    error = "TogetherAI model is not set in environment variables.";
+    error = 'TogetherAI model is not set in environment variables.';
   } else if (!inputText.trim()) {
-    error = "Please enter the customer message to classify.";
+    error = 'Please enter the customer message to classify.';
   } else {
     try {
       const systemPrompt = messageClassifierSystemPrompt; // Your existing system prompt here
@@ -834,13 +809,13 @@ exports.postTogetherAIClassifier = async (req, res) => {
         systemPrompt,
       };
     } catch (err) {
-      console.log("TogetherAI Classifier API Error:", err);
-      error = "Failed to call TogetherAI API.";
+      console.log('TogetherAI Classifier API Error:', err);
+      error = 'Failed to call TogetherAI API.';
     }
   }
 
-  res.render("ai/togetherai-classifier", {
-    title: "TogetherAI Department Classifier",
+  res.render('ai/togetherai-classifier', {
+    title: 'TogetherAI Department Classifier',
     result,
     error,
     input: inputText,

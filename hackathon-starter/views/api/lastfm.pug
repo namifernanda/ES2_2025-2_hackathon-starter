@@ -3,29 +3,26 @@ extends ../layout
 block content
   .pb-2.mt-2.mb-4.border-bottom
     h2
-      i.far.fa-play-circle.fa-sm.iconpadding(style="color: #db1302")
+      i.far.fa-play-circle.fa-sm.iconpadding(style='color: #db1302')
       | Last.fm API
-  .btn-group.d-flex(role="group")
+  .btn-group.d-flex(role='group')
     a.btn.btn-primary.w-100(
-      href="https://github.com/jammus/lastfm-node#lastfm-node",
-      target="_blank"
+      href='https://github.com/jammus/lastfm-node#lastfm-node',
+      target='_blank'
     )
       i.far.fa-check-square.fa-sm.iconpadding
       | Last.fm Node Docs
-    a.btn.btn-primary.w-100(
-      href="http://www.last.fm/api/account/create",
-      target="_blank"
-    )
+    a.btn.btn-primary.w-100(href='http://www.last.fm/api/account/create', target='_blank')
       i.fas.fa-laptop.fa-sm.iconpadding
       | Create API Account
-    a.btn.btn-primary.w-100(href="http://www.last.fm/api", target="_blank")
+    a.btn.btn-primary.w-100(href='http://www.last.fm/api', target='_blank')
       i.fas.fa-code-branch.fa-sm.iconpadding
       | API Endpoints
 
   h3= artist.name
   h4 Top Albums
   each album in artist.topAlbums
-    img(src="" + album.image.slice(-1)[0]["#text"], width=240, height=240)
+    img(src='' + album.image.slice(-1)[0]['#text'], width=240, height=240)
     | &nbsp;
 
   h4 Tags
@@ -46,10 +43,10 @@ block content
   ol
     each track in artist.topTracks
       li
-        a(href="" + track.url) #{ track.name }
+        a(href='' + track.url) #{ track.name }
 
   h4 Similar Artists
   ul.list-unstyled.list-inline
     each similarArtist in artist.similar
       li
-        a(href="" + similarArtist.url) #{ similarArtist.name }
+        a(href='' + similarArtist.url) #{ similarArtist.name }
