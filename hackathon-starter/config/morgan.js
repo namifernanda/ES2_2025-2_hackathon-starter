@@ -1,17 +1,17 @@
-const logger = require('morgan');
-const Bowser = require('bowser');
+const logger = require("morgan");
+const Bowser = require("bowser");
 
 // Color definitions for console output
 const colors = {
-  red: '\x1b[31m',
-  green: '\x1b[32m',
-  yellow: '\x1b[33m',
-  cyan: '\x1b[36m',
-  reset: '\x1b[0m',
+  red: "\x1b[31m",
+  green: "\x1b[32m",
+  yellow: "\x1b[33m",
+  cyan: "\x1b[36m",
+  reset: "\x1b[0m",
 };
 
 // Custom colored status token
-logger.token('colored-status', (req, res) => {
+logger.token("colored-status", (req, res) => {
   const status = res.statusCode;
   let color;
   if (status >= 500) color = colors.red;
@@ -23,33 +23,33 @@ logger.token('colored-status', (req, res) => {
 });
 
 // Custom token for timestamp without timezone offset
-logger.token('short-date', () => {
+logger.token("short-date", () => {
   const now = new Date();
-  return now.toLocaleString('sv').replace(',', '');
+  return now.toLocaleString("sv").replace(",", "");
 });
 
 // Custom token for simplified user agent using Bowser
-logger.token('parsed-user-agent', (req) => {
-  const userAgent = req.headers['user-agent'];
-  if (!userAgent) return 'Unknown';
+logger.token("parsed-user-agent", (req) => {
+  const userAgent = req.headers["user-agent"];
+  if (!userAgent) return "Unknown";
   const parsedUA = Bowser.parse(userAgent);
-  const osName = parsedUA.os.name || 'Unknown';
-  const browserName = parsedUA.browser.name || 'Unknown';
+  const osName = parsedUA.os.name || "Unknown";
+  const browserName = parsedUA.browser.name || "Unknown";
 
   // Get major version number
-  const version = parsedUA.browser.version || '';
-  const majorVersion = version.split('.')[0];
+  const version = parsedUA.browser.version || "";
+  const majorVersion = version.split(".")[0];
 
   return `${osName}/${browserName} v${majorVersion}`;
 });
 
 // Track bytes actually sent
-logger.token('bytes-sent', (req, res) => {
+logger.token("bytes-sent", (req, res) => {
   // Check for original uncompressed size first
   let length =
-    res.getHeader('X-Original-Content-Length') || // Some compression middlewares add this
-    res.get('x-content-length') || // Alternative header
-    res.getHeader('Content-Length');
+    res.getHeader("X-Original-Content-Length") || // Some compression middlewares add this
+    res.get("x-content-length") || // Alternative header
+    res.getHeader("Content-Length");
 
   // For static files
   if (!length && res.locals && res.locals.stat) {
@@ -67,19 +67,19 @@ logger.token('bytes-sent', (req, res) => {
   }
 
   // For chunked responses
-  const transferEncoding = res.getHeader('Transfer-Encoding');
-  if (transferEncoding === 'chunked') {
-    return 'chunked';
+  const transferEncoding = res.getHeader("Transfer-Encoding");
+  if (transferEncoding === "chunked") {
+    return "chunked";
   }
 
-  return '-';
+  return "-";
 });
 
 // Track partial response info
-logger.token('transfer-state', (req, res) => {
-  if (!res._header) return 'NO_RESPONSE';
-  if (res.finished) return 'COMPLETE';
-  return 'PARTIAL';
+logger.token("transfer-state", (req, res) => {
+  if (!res._header) return "NO_RESPONSE";
+  if (res.finished) return "COMPLETE";
+  return "PARTIAL";
 });
 
 // Define the custom request log format
@@ -89,7 +89,9 @@ logger.token('transfer-state', (req, res) => {
 // compliance with GDPR and other privacy regulations.
 // Also using a function so we can test it in our unit tests.
 const getMorganFormat = () =>
-  process.env.NODE_ENV === 'production' ? ':short-date :method :url :colored-status :response-time[0]ms :bytes-sent :transfer-state - :parsed-user-agent' : ':short-date :method :url :colored-status :response-time[0]ms :bytes-sent :transfer-state :remote-addr :parsed-user-agent';
+  process.env.NODE_ENV === "production"
+    ? ":short-date :method :url :colored-status :response-time[0]ms :bytes-sent :transfer-state - :parsed-user-agent"
+    : ":short-date :method :url :colored-status :response-time[0]ms :bytes-sent :transfer-state :remote-addr :parsed-user-agent";
 
 // Set the format once at initialization for the actual middleware so we don't have to evaluate on each call
 const morganFormat = getMorganFormat();

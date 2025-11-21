@@ -1,6 +1,6 @@
-const crypto = require('crypto');
-const bcrypt = require('@node-rs/bcrypt');
-const mongoose = require('mongoose');
+const crypto = require("crypto");
+const bcrypt = require("@node-rs/bcrypt");
+const mongoose = require("mongoose");
 
 const userSchema = new mongoose.Schema(
   {
@@ -51,20 +51,24 @@ userSchema.index({ emailVerificationToken: 1 });
 userSchema.index({ loginToken: 1 });
 
 // Virtual properties for checking token expiration
-userSchema.virtual('isPasswordResetExpired').get(function checkPasswordResetExpiration() {
-  return Date.now() > this.passwordResetExpires;
-});
+userSchema
+  .virtual("isPasswordResetExpired")
+  .get(function checkPasswordResetExpiration() {
+    return Date.now() > this.passwordResetExpires;
+  });
 
-userSchema.virtual('isEmailVerificationExpired').get(function checkEmailVerificationExpiration() {
-  return Date.now() > this.emailVerificationExpires;
-});
+userSchema
+  .virtual("isEmailVerificationExpired")
+  .get(function checkEmailVerificationExpiration() {
+    return Date.now() > this.emailVerificationExpires;
+  });
 
-userSchema.virtual('isLoginExpired').get(function checkLoginTokenExpiration() {
+userSchema.virtual("isLoginExpired").get(function checkLoginTokenExpiration() {
   return Date.now() > this.loginExpires;
 });
 
 // Middleware to clear expired tokens on save
-userSchema.pre('save', function clearExpiredTokens(next) {
+userSchema.pre("save", function clearExpiredTokens(next) {
   const now = Date.now();
 
   if (this.passwordResetExpires && this.passwordResetExpires < now) {
@@ -89,9 +93,9 @@ userSchema.pre('save', function clearExpiredTokens(next) {
 });
 
 // Password hash middleware
-userSchema.pre('save', async function hashPassword(next) {
+userSchema.pre("save", async function hashPassword(next) {
   const user = this;
-  if (!user.isModified('password')) {
+  if (!user.isModified("password")) {
     return next();
   }
   try {
@@ -103,7 +107,10 @@ userSchema.pre('save', async function hashPassword(next) {
 });
 
 // Helper method for validating password for login by password strategy
-userSchema.methods.comparePassword = async function comparePassword(candidatePassword, cb) {
+userSchema.methods.comparePassword = async function comparePassword(
+  candidatePassword,
+  cb,
+) {
   try {
     cb(null, await bcrypt.verify(candidatePassword, this.password));
   } catch (err) {
@@ -119,7 +126,7 @@ userSchema.methods.gravatar = function gravatarUrl(size) {
   if (!this.email) {
     return `https://gravatar.com/avatar/00000000000000000000000000000000?s=${size}&d=retro`;
   }
-  const sha256 = crypto.createHash('sha256').update(this.email).digest('hex');
+  const sha256 = crypto.createHash("sha256").update(this.email).digest("hex");
   return `https://gravatar.com/avatar/${sha256}?s=${size}&d=retro`;
 };
 
@@ -127,16 +134,20 @@ userSchema.methods.gravatar = function gravatarUrl(size) {
 // This is used to prevent CSRF attacks by ensuring that the token is valid for
 // the IP address it was generated from
 userSchema.statics.hashIP = function hashIP(ip) {
-  return crypto.createHash('sha256').update(ip).digest('hex');
+  return crypto.createHash("sha256").update(ip).digest("hex");
 };
 
 // Helper methods for token generation
 userSchema.statics.generateToken = function generateToken() {
-  return crypto.randomBytes(32).toString('hex');
+  return crypto.randomBytes(32).toString("hex");
 };
 
 // Helper methods for token verification
-userSchema.methods.verifyTokenAndIp = function verifyTokenAndIp(token, ip, tokenType) {
+userSchema.methods.verifyTokenAndIp = function verifyTokenAndIp(
+  token,
+  ip,
+  tokenType,
+) {
   const hashedIp = this.constructor.hashIP(ip);
   const tokenField = `${tokenType}Token`;
   const ipHashField = `${tokenType}IpHash`;
@@ -159,13 +170,17 @@ userSchema.methods.verifyTokenAndIp = function verifyTokenAndIp(token, ip, token
       return false;
     }
 
-    return crypto.timingSafeEqual(storedToken, inputToken) && this[ipHashField] === hashedIp && this[expiresField] > Date.now();
+    return (
+      crypto.timingSafeEqual(storedToken, inputToken) &&
+      this[ipHashField] === hashedIp &&
+      this[expiresField] > Date.now()
+    );
   } catch (err) {
     console.log(err);
     return false;
   }
 };
 
-const User = mongoose.model('User', userSchema);
+const User = mongoose.model("User", userSchema);
 
 module.exports = User;
