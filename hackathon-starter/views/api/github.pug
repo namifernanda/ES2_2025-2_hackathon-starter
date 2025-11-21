@@ -5,11 +5,17 @@ block content
     i.fab.fa-github.fa-sm.iconpadding
     | GitHub API
 
-  .btn-group.d-flex(role='group')
-    a.btn.btn-primary.w-100(href='http://developer.github.com/guides/getting-started/', target='_blank')
+  .btn-group.d-flex(role="group")
+    a.btn.btn-primary.w-100(
+      href="http://developer.github.com/guides/getting-started/",
+      target="_blank"
+    )
       i.far.fa-check-square.fa-sm.iconpadding
       | Getting Started
-    a.btn.btn-primary.w-100(href='http://developer.github.com/v3/', target='_blank')
+    a.btn.btn-primary.w-100(
+      href="http://developer.github.com/v3/",
+      target="_blank"
+    )
       i.far.fa-file-alt.fa-sm.iconpadding
       | Documentation
   br
@@ -21,7 +27,7 @@ block content
       .card-body.text-dark.bg-white
         .row
           .col-3
-            img.img-thumbnail(src=userInfo.avatar_url, alt='User Avatar')
+            img.img-thumbnail(src=userInfo.avatar_url, alt="User Avatar")
           .col-9
             h4 #{ userInfo.name || userInfo.login }
             ul.list-unstyled
@@ -41,7 +47,7 @@ block content
                 strong GitHub Profile:
                 |
                 |
-                a(href=userInfo.html_url, target='_blank') #{ userInfo.html_url }
+                a(href=userInfo.html_url, target="_blank") #{ userInfo.html_url }
 
         if userRepos.length > 0
           hr
@@ -49,7 +55,7 @@ block content
           ul.list-unstyled
             each repo in userRepos
               li
-                a(href=repo.html_url, target='_blank') #{ repo.name }
+                a(href=repo.html_url, target="_blank") #{ repo.name }
                 |
                 | - #{ repo.description || 'No description provided.' }
 
@@ -58,41 +64,53 @@ block content
           h5 Recent Activity (up to #{ limit })
           ul.list-unstyled
             each event in userEvents
-              if event.type === 'PullRequestEvent'
+              if event.type === "PullRequestEvent"
                 li
                   | Pull request #{ event.payload.action }
                   |
-                  a(href=event.payload.pull_request.html_url, target='_blank') #{ event.payload.pull_request.title || `#${event.payload.number}` }
+                  a(href=event.payload.pull_request.html_url, target="_blank") #{ event.payload.pull_request.title || `#${event.payload.number}` }
                   |
                   | in
                   |
-                  a(href=event.repo.url.replace('api.github.com/repos', 'github.com'), target='_blank') #{ event.repo.name }
-              else if event.type === 'PushEvent'
+                  a(
+                    href=event.repo.url.replace("api.github.com/repos", "github.com"),
+                    target="_blank"
+                  ) #{ event.repo.name }
+              else if event.type === "PushEvent"
                 li
                   | Pushed to
                   |
-                  a(href=event.repo.url.replace('api.github.com/repos', 'github.com'), target='_blank') #{ event.repo.name }
+                  a(
+                    href=event.repo.url.replace("api.github.com/repos", "github.com"),
+                    target="_blank"
+                  ) #{ event.repo.name }
                   |
                   | (#{ event.payload.ref.replace('refs/heads/', '') })
-              else if event.type === 'IssuesEvent'
+              else if event.type === "IssuesEvent"
                 li
                   | Issue #{ event.payload.action }
                   |
-                  a(href=event.payload.issue.html_url, target='_blank') #{ event.payload.issue.title || `#${event.payload.issue.number}` }
+                  a(href=event.payload.issue.html_url, target="_blank") #{ event.payload.issue.title || `#${event.payload.issue.number}` }
                   |
                   | in
                   |
-                  a(href=event.repo.url.replace('api.github.com/repos', 'github.com'), target='_blank') #{ event.repo.name }
-              else if event.type === 'IssueCommentEvent'
+                  a(
+                    href=event.repo.url.replace("api.github.com/repos", "github.com"),
+                    target="_blank"
+                  ) #{ event.repo.name }
+              else if event.type === "IssueCommentEvent"
                 li
                   | Commented on issue
                   |
-                  a(href=event.payload.issue.html_url, target='_blank') #{ event.payload.issue.title || `#${event.payload.issue.number}` }
+                  a(href=event.payload.issue.html_url, target="_blank") #{ event.payload.issue.title || `#${event.payload.issue.number}` }
                   |
                   | in
                   |
-                  a(href=event.repo.url.replace('api.github.com/repos', 'github.com'), target='_blank') #{ event.repo.name }
-              else if event.type === 'CreateEvent'
+                  a(
+                    href=event.repo.url.replace("api.github.com/repos", "github.com"),
+                    target="_blank"
+                  ) #{ event.repo.name }
+              else if event.type === "CreateEvent"
                 li
                   | Created #{ event.payload.ref_type }
                   |
@@ -101,8 +119,11 @@ block content
                   |
                   | in
                   |
-                  a(href=event.repo.url.replace('api.github.com/repos', 'github.com'), target='_blank') #{ event.repo.name }
-              else if event.type === 'DeleteEvent'
+                  a(
+                    href=event.repo.url.replace("api.github.com/repos", "github.com"),
+                    target="_blank"
+                  ) #{ event.repo.name }
+              else if event.type === "DeleteEvent"
                 li
                   | Deleted #{ event.payload.ref_type }
                   |
@@ -110,26 +131,35 @@ block content
                   |
                   | in
                   |
-                  a(href=event.repo.url.replace('api.github.com/repos', 'github.com'), target='_blank') #{ event.repo.name }
-              else if event.type === 'ForkEvent'
+                  a(
+                    href=event.repo.url.replace("api.github.com/repos", "github.com"),
+                    target="_blank"
+                  ) #{ event.repo.name }
+              else if event.type === "ForkEvent"
                 li
                   | Forked
                   |
-                  a(href=event.repo.url.replace('api.github.com/repos', 'github.com'), target='_blank') #{ event.repo.name }
-              else if event.type === 'WatchEvent'
+                  a(
+                    href=event.repo.url.replace("api.github.com/repos", "github.com"),
+                    target="_blank"
+                  ) #{ event.repo.name }
+              else if event.type === "WatchEvent"
                 li
                   | #{ event.payload.action === 'started' ? 'Starred' : event.payload.action }
                   |
-                  a(href=event.repo.url.replace('api.github.com/repos', 'github.com'), target='_blank') #{ event.repo.name }
+                  a(
+                    href=event.repo.url.replace("api.github.com/repos", "github.com"),
+                    target="_blank"
+                  ) #{ event.repo.name }
 
   else
     .alert.alert-warning
-      if authFailure === 'NotLoggedIn'
+      if authFailure === "NotLoggedIn"
         | Please log in to access your GitHub profile information.
-      else if authFailure === 'NotGitHubAuthorized'
+      else if authFailure === "NotGitHubAuthorized"
         | You are logged in but have not linked your GitHub account.
         |
-        a(href='/auth/github') Link your GitHub account
+        a(href="/auth/github") Link your GitHub account
         |
         | to access your GitHub profile information.
       else
@@ -143,7 +173,7 @@ block content
       .row
         .col-8
           h4
-            a(href=repo.html_url, target='_blank') #{ repo.name }
+            a(href=repo.html_url, target="_blank") #{ repo.name }
           p= repo.description
           ul.list-inline
             li.list-inline-item
@@ -181,5 +211,9 @@ block content
             ul.list-inline
               each stargazer in repoStargazers
                 li.list-inline-item
-                  a(href=stargazer.html_url, target='_blank')
-                    img.img-thumbnail(src=stargazer.avatar_url, alt='Stargazer Avatar', style='width: 50px; height: 50px')
+                  a(href=stargazer.html_url, target="_blank")
+                    img.img-thumbnail(
+                      src=stargazer.avatar_url,
+                      alt="Stargazer Avatar",
+                      style="width: 50px; height: 50px"
+                    )

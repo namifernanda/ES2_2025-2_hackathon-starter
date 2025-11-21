@@ -6,8 +6,11 @@ block content
       i.fab.fa-tumblr-square.fa-sm.iconpadding
       | Tumblr API
 
-  .btn-group.mb-4.d-flex(role='group')
-    a.btn.btn-primary.w-100(href='https://www.tumblr.com/docs/en/api/v2', target='_blank')
+  .btn-group.mb-4.d-flex(role="group")
+    a.btn.btn-primary.w-100(
+      href="https://www.tumblr.com/docs/en/api/v2",
+      target="_blank"
+    )
       i.far.fa-check-square.fa-sm.iconpadding
       | API Docs
 
@@ -33,9 +36,15 @@ block content
       .row
         .col-8
           if blog.avatar && blog.avatar.length > 0
-            img(src=blog.avatar[0].url, alt='Avatar', width=50, height=50, style='float: left; margin-right: 10px')
+            img(
+              src=blog.avatar[0].url,
+              alt="Avatar",
+              width=50,
+              height=50,
+              style="float: left; margin-right: 10px"
+            )
           h4
-            a(href=blog.url, target='_blank') #{ blog.name }
+            a(href=blog.url, target="_blank") #{ blog.name }
           h6 #{ blog.title } | #{ blog.description }
           br
           ul.list-inline

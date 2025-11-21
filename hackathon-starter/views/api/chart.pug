@@ -1,19 +1,25 @@
 extends ../layout
 
 block head
-  script(src='/js/lib/chart.umd.js')
+  script(src="/js/lib/chart.umd.js")
 
 block content
   .pb-2.mt-2.mb-4.border-bottom
     h2
-      i.fas.fa-chart-bar.fa-sm.fa-sm.iconpadding(style='color: #ff6384')
+      i.fas.fa-chart-bar.fa-sm.fa-sm.iconpadding(style="color: #ff6384")
       | Chart.js and Alpha Vantage
 
-  .btn-group.d-flex(role='group')
-    a.btn.btn-primary.w-100(href='https://www.chartjs.org/docs', target='_blank')
+  .btn-group.d-flex(role="group")
+    a.btn.btn-primary.w-100(
+      href="https://www.chartjs.org/docs",
+      target="_blank"
+    )
       i.fas.fa-chart-bar.fa-sm.iconpadding
       | Chart.js Docs
-    a.btn.btn-primary.w-100(href='https://www.alphavantage.co/documentation', target='_blank')
+    a.btn.btn-primary.w-100(
+      href="https://www.alphavantage.co/documentation",
+      target="_blank"
+    )
       i.fas.fa-money-check-alt.fa-sm.iconpadding
       | Alpha Vantage Docs
   .container
@@ -25,22 +31,22 @@ block content
     p
     h6 #{ dataType }
     .mt-2.mb-4
-      div(style='width: 90%; height: 80%; margin: 0 auto')
+      div(style="width: 90%; height: 80%; margin: 0 auto")
         canvas#chart
   script.
     var datesList = !{ dates };
     var closingList = !{ closing };
-    var ctx = document.getElementById('chart').getContext('2d');
+    var ctx = document.getElementById("chart").getContext("2d");
     var myChart = new Chart(ctx, {
-      type: 'line',
+      type: "line",
       data: {
         labels: datesList,
         datasets: [
           {
             label: "Microsoft's Closing Stock Values",
             data: closingList,
-            borderColor: '#3e95cd',
-            backgroundColor: 'rgba(118,152,255,0.4)',
+            borderColor: "#3e95cd",
+            backgroundColor: "rgba(118,152,255,0.4)",
           },
         ],
       },

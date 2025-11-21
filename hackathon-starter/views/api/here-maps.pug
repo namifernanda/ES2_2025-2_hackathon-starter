@@ -6,39 +6,62 @@ block content
       i.fas.fa-map-marked.iconpadding
       | HERE Maps API
 
-  .btn-group.d-flex(role='group')
-    a.btn.btn-primary.w-100(href='https://developer.here.com', target='_blank')
+  .btn-group.d-flex(role="group")
+    a.btn.btn-primary.w-100(href="https://developer.here.com", target="_blank")
       i.far.fa-check-square.fa-sm.iconpadding
       | HERE Developer Portal
-    a.btn.btn-primary.w-100(href='https://developer.here.com/documentation/map-image/topics/resource-map.html', target='_blank')
+    a.btn.btn-primary.w-100(
+      href="https://developer.here.com/documentation/map-image/topics/resource-map.html",
+      target="_blank"
+    )
       i.fas.fa-laptop.fa-sm.iconpadding
       | Image Map Parameters
 
   br
   .pb-2.mt-2
     h3 Map using Here Interactive Map Service
-  div(style='display: flex; justify-content: center')
-    #map(style='width: 100vw; height: 50vh')
+  div(style="display: flex; justify-content: center")
+    #map(style="width: 100vw; height: 50vh")
 
-  div(style='display: flex; justify-content: center')
+  div(style="display: flex; justify-content: center")
     | Straight line distance between the Fremont Troll and Seattle Art Museum is&nbsp;
     #directLineDistance
     | &nbsp;miles.
 
-  script(src='https://js.api.here.com/v3/3.1/mapsjs-core.js', type='text/javascript', charset='utf-8')
-  script(src='https://js.api.here.com/v3/3.1/mapsjs-service.js', type='text/javascript', charset='utf-8')
-  script(src='https://js.api.here.com/v3/3.1/mapsjs-mapevents.js', type='text/javascript', charset='utf-8')
-  script(src='https://js.api.here.com/v3/3.1/mapsjs-ui.js', type='text/javascript', charset='utf-8')
-  link(rel='stylesheet', type='text/css', href='https://js.api.here.com/v3/3.1/mapsjs-ui.css')
+  script(
+    src="https://js.api.here.com/v3/3.1/mapsjs-core.js",
+    type="text/javascript",
+    charset="utf-8"
+  )
+  script(
+    src="https://js.api.here.com/v3/3.1/mapsjs-service.js",
+    type="text/javascript",
+    charset="utf-8"
+  )
+  script(
+    src="https://js.api.here.com/v3/3.1/mapsjs-mapevents.js",
+    type="text/javascript",
+    charset="utf-8"
+  )
+  script(
+    src="https://js.api.here.com/v3/3.1/mapsjs-ui.js",
+    type="text/javascript",
+    charset="utf-8"
+  )
+  link(
+    rel="stylesheet",
+    type="text/css",
+    href="https://js.api.here.com/v3/3.1/mapsjs-ui.css"
+  )
 
   script.
     const platform = new H.service.Platform({
       useHTTPS: true,
-      apikey: '#{apikey}',
+      apikey: "#{apikey}",
     });
 
     const defaultLayers = platform.createDefaultLayers();
-    const map = new H.Map(document.getElementById('map'), defaultLayers.vector.normal.map, {
+    const map = new H.Map(document.getElementById("map"), defaultLayers.vector.normal.map, {
       zoom: 12,
       center: { lat: 47.6573676, lng: -122.3126527 },
     });
@@ -60,10 +83,10 @@ block content
     lineString.pushLatLngAlt(47.6205099, -122.3514661);
 
     // Create polygon
-    const polygon = new H.map.Polygon(lineString, { style: { lineWidth: 2, strokeColor: 'black', fillColor: 'rgba(255, 0, 255, 0.5)' } });
+    const polygon = new H.map.Polygon(lineString, { style: { lineWidth: 2, strokeColor: "black", fillColor: "rgba(255, 0, 255, 0.5)" } });
 
     // Create circle
-    const circle = new H.map.Circle({ lat: 47.6205099, lng: -122.3514661 }, 3000, { style: { strokeColor: 'rgba(0,128,0, 0.6)', lineWidth: 1, fillColor: 'rgba(0, 128, 0, 0.3)' } });
+    const circle = new H.map.Circle({ lat: 47.6205099, lng: -122.3514661 }, 3000, { style: { strokeColor: "rgba(0,128,0, 0.6)", lineWidth: 1, fillColor: "rgba(0, 128, 0, 0.3)" } });
 
     // Add all objects to the map
     map.addObjects([marker1, marker2, marker3, marker4, polygon, circle]);
@@ -72,4 +95,4 @@ block content
     const start = marker1.getGeometry();
     const end = marker2.getGeometry();
     const distance = (start.distance(end) / 1609.344).toFixed(2);
-    document.getElementById('directLineDistance').innerHTML = distance;
+    document.getElementById("directLineDistance").innerHTML = distance;
