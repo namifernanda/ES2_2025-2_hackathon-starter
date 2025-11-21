@@ -30,7 +30,10 @@ jobs:
         run: npm ci
 
       - name: Lint check
-        run: npx prettier --check "**/*.{js,css,scss,pug}" && npm run lint-check
+        run: |
+              npx prettier --plugin-search-dir=. --check "hackathon-starter/**/*.{js,css,scss,pug}"
+              npm run lint-check
+
 
 
       - name: Run tests
