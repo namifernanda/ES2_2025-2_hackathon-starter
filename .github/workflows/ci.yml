@@ -11,6 +11,10 @@ jobs:
   ci:
     runs-on: ubuntu-latest
 
+    defaults:
+        run:
+          working-directory: hackathon-starter
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -20,6 +24,7 @@ jobs:
         with:
           node-version: "22"
           cache: "npm"
+          cache-dependency-path: hackathon-starter/package-lock.json
 
       - name: Install dependencies
         run: npm ci
@@ -36,3 +41,4 @@ jobs:
         with:
           name: coverage
           path: tmp/coverage/
+          if-no-files-found: ignore
