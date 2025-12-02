@@ -319,6 +319,11 @@ app.get(
   apiController.getQuickbooks,
 );
 app.get('/api/trakt', apiController.getTrakt);
+app.get(
+  '/api/spotify', 
+  ensureAuthenticated, 
+  apiController.getSpotify);
+
 
 /**
  * AI Integrations and Boilerplate example routes.

@@ -1532,3 +1532,40 @@ exports.getTrakt = async (req, res, next) => {
     next(error);
   }
 };
+
+/**
+ * GET /api/spotify
+ * Spotify API example.
+ */
+exports.getSpotify = async (req, res, next) => {
+  try {
+    // Encontrar token do Spotify no array de tokens do usuário
+    const token = req.user.tokens.find((token) => token.kind === 'spotify');
+    if (!token) {
+      throw new Error('Spotify token not found');
+    }
+
+    // Fazer requisição à API do Spotify para buscar perfil do usuário
+    const response = await fetch('https://api.spotify.com/v1/me', {
+      headers: {
+        Authorization: `Bearer ${token.accessToken}`,
+      },
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error?.message || 'Failed to fetch Spotify data');
+    }
+
+    const profile = await response.json();
+
+    // Renderizar view com os dados do usuário
+    res.render('api/spotify', {
+      title: 'Spotify API',
+      profile,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
