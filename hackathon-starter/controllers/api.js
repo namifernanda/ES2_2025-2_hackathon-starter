@@ -29,6 +29,7 @@ const fs = require('fs');
 exports.getApi = (req, res) => {
   res.render('api/index', {
     title: 'API Examples',
+    spotify: process.env.SPOTIFY_ID,
   });
 };
 
@@ -1553,8 +1554,13 @@ exports.getSpotify = async (req, res, next) => {
     });
 
     if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error?.message || 'Failed to fetch Spotify data');
+      try {
+        const error = await response.json();
+        throw new Error(error.error?.message || 'Failed to fetch Spotify data');
+      } catch (e) {
+        // If JSON parsing fails, throw a generic message
+        throw new Error('Failed to fetch Spotify data. Response was not valid JSON.');
+      }
     }
 
     const profile = await response.json();

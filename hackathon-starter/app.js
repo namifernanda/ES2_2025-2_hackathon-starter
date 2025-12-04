@@ -17,7 +17,7 @@ const rateLimit = require('express-rate-limit');
 /**
  * Load environment variables from .env file, where API keys and passwords are configured.
  */
-dotenv.config({ path: '.env.example' });
+dotenv.config();
 
 /**
  * Set config values
@@ -73,6 +73,7 @@ const contactController = require('./controllers/contact');
  * API keys and Passport configuration.
  */
 const passportConfig = require('./config/passport');
+const { ensureAuthenticated } = require('./config/passport');
 
 /**
  * Request logging configuration
@@ -321,8 +322,9 @@ app.get(
 app.get('/api/trakt', apiController.getTrakt);
 app.get(
   '/api/spotify', 
-  ensureAuthenticated, 
-  apiController.getSpotify);
+  passportConfig.isAuthenticated, 
+  apiController.getSpotify
+);
 
 
 /**
@@ -435,6 +437,14 @@ app.get('/auth/discord', passport.authenticate('discord'));
 app.get(
   '/auth/discord/callback',
   passport.authenticate('discord', { failureRedirect: '/auth/failure' }),
+  (req, res) => {
+    res.redirect(req.session.returnTo || '/');
+  },
+);
+app.get('/auth/spotify', passport.authenticate('spotify', { scope: ['user-read-email', 'user-read-private'] }));
+app.get(
+  '/auth/spotify/callback',
+  passport.authenticate('spotify', { failureRedirect: '/auth/failure' }),
   (req, res) => {
     res.redirect(req.session.returnTo || '/');
   },

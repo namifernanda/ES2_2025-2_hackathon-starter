@@ -1,7 +1,7 @@
 module.exports = {
   spotify: {
-    clientID: 'SEU_CLIENT_ID',
-    clientSecret: 'SEU_CLIENT_SECRET',
-    callbackURL: 'http://localhost:3000/auth/spotify/callback'
-  }
+    clientID: process.env.SPOTIFY_ID,
+    clientSecret: process.env.SPOTIFY_SECRET,
+    callbackURL: `${process.env.BASE_URL}/auth/spotify/callback`,
+  },
 };

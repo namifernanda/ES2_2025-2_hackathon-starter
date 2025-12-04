@@ -1035,9 +1035,8 @@ exports.isAuthorized = async (req, res, next) => {
 /**
  * Spotify integration.
  */
-const passport = require('passport');
 const SpotifyStrategy = require('passport-spotify').Strategy;
-const secrets = require('./config/secrets');
+const secrets = require('./secrets');
 passport.use(new SpotifyStrategy({
   clientID: secrets.spotify.clientID,
   clientSecret: secrets.spotify.clientSecret,
@@ -1045,16 +1044,6 @@ passport.use(new SpotifyStrategy({
 }, function(accessToken, refreshToken, profile, done) {
   return done(null, profile);
 }));
-
-// Serialização e desserialização (mesmo padrão do Hackathon Starter)
-passport.serializeUser(function(user, done) {
-  done(null, user);
-});
-
-passport.deserializeUser(function(obj, done) {
-  done(null, obj);
-});
-
 
 // Add export for testing the internal function
 exports._saveOAuth2UserTokens = saveOAuth2UserTokens;
