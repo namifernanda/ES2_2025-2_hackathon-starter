@@ -743,7 +743,6 @@ exports.postTogetherAICamera = async (req, res) => {
     }
     const dataUrl = createImageDataUrl(req.file);
     const apiRequestBody = createVisionLLMRequestBody(dataUrl, togetherAiModel);
-    // console.log('Making Vision API request to Together AI...');
     const data = await callTogetherAiApi(apiRequestBody, togetherAiKey);
     const analysis = extractVisionAnalysis(data);
     // console.log('Vision analysis completed:', analysis);
