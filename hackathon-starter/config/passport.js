@@ -93,7 +93,15 @@ passport.use(
  * If no tokens exists:
  *    - Creates new token entry with provided tokens and expirations
  */
-async function saveOAuth2UserTokens(req, accessToken, refreshToken, accessTokenExpiration, refreshTokenExpiration, providerName, tokenConfig = {}) {
+async function saveOAuth2UserTokens(
+  req,
+  accessToken,
+  refreshToken,
+  accessTokenExpiration,
+  refreshTokenExpiration,
+  providerName,
+  tokenConfig = {},
+) {
   try {
     let user = await User.findById(req.user._id);
     if (!user) {
@@ -112,7 +120,9 @@ async function saveOAuth2UserTokens(req, accessToken, refreshToken, accessTokenE
         providerToken.refreshToken = refreshToken;
       }
       if (refreshTokenExpiration) {
-        providerToken.refreshTokenExpires = moment().add(refreshTokenExpiration, 'seconds').format();
+        providerToken.refreshTokenExpires = moment()
+          .add(refreshTokenExpiration, 'seconds')
+          .format();
       } else if (refreshToken) {
         // Only delete refresh token expiration if we got a new refresh token and don't have an expiration for it
         delete providerToken.refreshTokenExpires;
@@ -171,11 +181,20 @@ passport.use(
             if (req.session) req.session.returnTo = undefined; // Prevent infinite redirect loop
             return done(null, req.user);
           }
-          const user = await saveOAuth2UserTokens(req, accessToken, null, params.expires_in, null, 'facebook');
+          const user = await saveOAuth2UserTokens(
+            req,
+            accessToken,
+            null,
+            params.expires_in,
+            null,
+            'facebook',
+          );
           user.facebook = profile.id;
-          user.profile.name = user.profile.name || `${profile.name.givenName} ${profile.name.familyName}`;
+          user.profile.name =
+            user.profile.name || `${profile.name.givenName} ${profile.name.familyName}`;
           user.profile.gender = user.profile.gender || profile._json.gender;
-          user.profile.picture = user.profile.picture || `https://graph.facebook.com/${profile.id}/picture?type=large`;
+          user.profile.picture =
+            user.profile.picture || `https://graph.facebook.com/${profile.id}/picture?type=large`;
           await user.save();
           req.flash('info', { msg: 'Facebook account has been linked.' });
           return done(null, user);
@@ -187,7 +206,11 @@ passport.use(
           return done(null, existingUser);
         }
         const emailFromProvider = profile._json.email;
-        const normalizedEmail = emailFromProvider ? validator.normalizeEmail(emailFromProvider, { gmail_remove_dots: false }) : undefined;
+        const normalizedEmail = emailFromProvider
+          ? validator.normalizeEmail(emailFromProvider, {
+              gmail_remove_dots: false,
+            })
+          : undefined;
         const existingEmailUser = await User.findOne({
           email: { $eq: normalizedEmail },
         });
@@ -266,7 +289,11 @@ passport.use(
           return 0;
         });
         const emailFromProvider = sortedEmails.length > 0 ? sortedEmails[0].value : null;
-        const normalizedEmail = emailFromProvider ? validator.normalizeEmail(emailFromProvider, { gmail_remove_dots: false }) : undefined;
+        const normalizedEmail = emailFromProvider
+          ? validator.normalizeEmail(emailFromProvider, {
+              gmail_remove_dots: false,
+            })
+          : undefined;
         const existingEmailUser = await User.findOne({
           email: { $eq: normalizedEmail },
         });
@@ -358,7 +385,12 @@ const googleStrategyConfig = new GoogleStrategy(
     clientID: process.env.GOOGLE_ID,
     clientSecret: process.env.GOOGLE_SECRET,
     callbackURL: '/auth/google/callback',
-    scope: ['profile', 'email', 'https://www.googleapis.com/auth/drive.metadata.readonly', 'https://www.googleapis.com/auth/spreadsheets.readonly'],
+    scope: [
+      'profile',
+      'email',
+      'https://www.googleapis.com/auth/drive.metadata.readonly',
+      'https://www.googleapis.com/auth/spreadsheets.readonly',
+    ],
     accessType: 'offline',
     prompt: 'consent',
     state: generateState(),
@@ -377,7 +409,14 @@ const googleStrategyConfig = new GoogleStrategy(
           if (req.session) req.session.returnTo = undefined;
           return done(null, req.user);
         }
-        const user = await saveOAuth2UserTokens(req, accessToken, refreshToken, params.expires_in, null, 'google');
+        const user = await saveOAuth2UserTokens(
+          req,
+          accessToken,
+          refreshToken,
+          params.expires_in,
+          null,
+          'google',
+        );
         user.google = profile.id;
         user.profile.name = user.profile.name || profile.displayName;
         user.profile.gender = user.profile.gender || profile._json.gender;
@@ -390,8 +429,15 @@ const googleStrategyConfig = new GoogleStrategy(
       if (existingUser) {
         return done(null, existingUser);
       }
-      const emailFromProvider = profile.emails && profile.emails[0] && profile.emails[0].value ? profile.emails[0].value : undefined;
-      const normalizedEmail = emailFromProvider ? validator.normalizeEmail(emailFromProvider, { gmail_remove_dots: false }) : undefined;
+      const emailFromProvider =
+        profile.emails && profile.emails[0] && profile.emails[0].value
+          ? profile.emails[0].value
+          : undefined;
+      const normalizedEmail = emailFromProvider
+        ? validator.normalizeEmail(emailFromProvider, {
+            gmail_remove_dots: false,
+          })
+        : undefined;
       const existingEmailUser = await User.findOne({
         email: { $eq: normalizedEmail },
       });
@@ -469,9 +515,16 @@ passport.use(
         if (existingUser) {
           return done(null, existingUser);
         }
-        const email = profile.emails && profile.emails[0] && profile.emails[0].value ? profile.emails[0].value : undefined;
-        const normalizedEmail = email ? validator.normalizeEmail(email, { gmail_remove_dots: false }) : undefined;
-        const existingEmailUser = await User.findOne({ email: { $eq: normalizedEmail } });
+        const email =
+          profile.emails && profile.emails[0] && profile.emails[0].value
+            ? profile.emails[0].value
+            : undefined;
+        const normalizedEmail = email
+          ? validator.normalizeEmail(email, { gmail_remove_dots: false })
+          : undefined;
+        const existingEmailUser = await User.findOne({
+          email: { $eq: normalizedEmail },
+        });
         if (existingEmailUser) {
           req.flash('errors', {
             msg: `Unable to sign in with LinkedIn at this time. If you have an existing account in our system, please sign in by email and link your account to LinkedIn in your user profile settings.`,
@@ -518,7 +571,14 @@ const twitchStrategyConfig = new TwitchStrategy(
           if (req.session) req.session.returnTo = undefined;
           return done(null, req.user);
         }
-        const user = await saveOAuth2UserTokens(req, accessToken, refreshToken, params.expires_in, null, 'twitch');
+        const user = await saveOAuth2UserTokens(
+          req,
+          accessToken,
+          refreshToken,
+          params.expires_in,
+          null,
+          'twitch',
+        );
         user.twitch = profile.id;
         user.profile.name = user.profile.name || profile.displayName;
         user.profile.picture = user.profile.picture || profile.profile_image_url;
@@ -531,7 +591,11 @@ const twitchStrategyConfig = new TwitchStrategy(
         return done(null, existingUser);
       }
       const emailFromProvider = profile._json.data[0].email;
-      const normalizedEmail = emailFromProvider ? validator.normalizeEmail(emailFromProvider, { gmail_remove_dots: false }) : undefined;
+      const normalizedEmail = emailFromProvider
+        ? validator.normalizeEmail(emailFromProvider, {
+            gmail_remove_dots: false,
+          })
+        : undefined;
       const existingEmailUser = await User.findOne({
         email: { $eq: normalizedEmail },
       });
@@ -587,7 +651,15 @@ passport.use(
         // This function is not going to make any actual calls to
         // tumblr's /request_token or /access_token endpoints.
         function getTumblrAuthHeader(url, method) {
-          const oauth = new OAuth('https://www.tumblr.com/oauth/request_token', 'https://www.tumblr.com/oauth/access_token', process.env.TUMBLR_KEY, process.env.TUMBLR_SECRET, '1.0A', null, 'HMAC-SHA1');
+          const oauth = new OAuth(
+            'https://www.tumblr.com/oauth/request_token',
+            'https://www.tumblr.com/oauth/access_token',
+            process.env.TUMBLR_KEY,
+            process.env.TUMBLR_SECRET,
+            '1.0A',
+            null,
+            'HMAC-SHA1',
+          );
           return oauth.authHeader(url, token, tokenSecret, method);
         }
 
@@ -716,9 +788,17 @@ const quickbooksStrategyConfig = new OAuth2Strategy(
   },
   async (req, accessToken, refreshToken, params, profile, done) => {
     try {
-      const user = await saveOAuth2UserTokens(req, accessToken, refreshToken, params.expires_in, params.x_refresh_token_expires_in, 'quickbooks', {
-        quickbooks: req.query.realmId,
-      });
+      const user = await saveOAuth2UserTokens(
+        req,
+        accessToken,
+        refreshToken,
+        params.expires_in,
+        params.x_refresh_token_expires_in,
+        'quickbooks',
+        {
+          quickbooks: req.query.realmId,
+        },
+      );
       return done(null, user);
     } catch (err) {
       return done(err);
@@ -756,9 +836,17 @@ const traktStrategyConfig = new OAuth2Strategy(
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       const data = await response.json();
-      const user = await saveOAuth2UserTokens(req, accessToken, refreshToken, params.expires_in, params.x_refresh_token_expires_in, 'trakt', {
-        trakt: data.ids.slug,
-      });
+      const user = await saveOAuth2UserTokens(
+        req,
+        accessToken,
+        refreshToken,
+        params.expires_in,
+        params.x_refresh_token_expires_in,
+        'trakt',
+        {
+          trakt: data.ids.slug,
+        },
+      );
       user.profile.name = user.profile.name || data.name;
       user.profile.location = user.profile.location || data.location;
       await user.save();
@@ -798,7 +886,9 @@ const discordStrategyConfig = new OAuth2Strategy(
       }
       const discordProfile = await response.json();
       if (req.user) {
-        const existingUser = await User.findOne({ discord: { $eq: discordProfile.id } });
+        const existingUser = await User.findOne({
+          discord: { $eq: discordProfile.id },
+        });
         if (existingUser && existingUser.id !== req.user.id) {
           req.flash('errors', {
             msg: 'There is another account in our system linked to your Discord account. Please delete the duplicate account before linking Discord to your current account.',
@@ -806,20 +896,37 @@ const discordStrategyConfig = new OAuth2Strategy(
           if (req.session) req.session.returnTo = undefined;
           return done(null, req.user);
         }
-        const user = await saveOAuth2UserTokens(req, accessToken, refreshToken, params.expires_in, null, 'discord');
+        const user = await saveOAuth2UserTokens(
+          req,
+          accessToken,
+          refreshToken,
+          params.expires_in,
+          null,
+          'discord',
+        );
         user.discord = discordProfile.id;
         user.profile.name = user.profile.name || discordProfile.username;
-        user.profile.picture = user.profile.picture || (discordProfile.avatar ? `https://cdn.discordapp.com/avatars/${discordProfile.id}/${discordProfile.avatar}.png` : undefined);
+        user.profile.picture =
+          user.profile.picture ||
+          (discordProfile.avatar
+            ? `https://cdn.discordapp.com/avatars/${discordProfile.id}/${discordProfile.avatar}.png`
+            : undefined);
         await user.save();
         req.flash('info', { msg: 'Discord account has been linked.' });
         return done(null, user);
       }
-      const existingUser = await User.findOne({ discord: { $eq: discordProfile.id } });
+      const existingUser = await User.findOne({
+        discord: { $eq: discordProfile.id },
+      });
       if (existingUser) {
         return done(null, existingUser);
       }
       const emailFromProvider = discordProfile.email;
-      const normalizedEmail = emailFromProvider ? validator.normalizeEmail(emailFromProvider, { gmail_remove_dots: false }) : undefined;
+      const normalizedEmail = emailFromProvider
+        ? validator.normalizeEmail(emailFromProvider, {
+            gmail_remove_dots: false,
+          })
+        : undefined;
       const existingEmailUser = await User.findOne({
         email: { $eq: normalizedEmail },
       });
@@ -833,9 +940,18 @@ const discordStrategyConfig = new OAuth2Strategy(
       user.email = normalizedEmail;
       user.discord = discordProfile.id;
       req.user = user;
-      await saveOAuth2UserTokens(req, accessToken, refreshToken, params.expires_in, null, 'discord');
+      await saveOAuth2UserTokens(
+        req,
+        accessToken,
+        refreshToken,
+        params.expires_in,
+        null,
+        'discord',
+      );
       user.profile.name = discordProfile.username;
-      user.profile.picture = discordProfile.avatar ? `https://cdn.discordapp.com/avatars/${discordProfile.id}/${discordProfile.avatar}.png` : undefined;
+      user.profile.picture = discordProfile.avatar
+        ? `https://cdn.discordapp.com/avatars/${discordProfile.id}/${discordProfile.avatar}.png`
+        : undefined;
       await user.save();
       return done(null, user);
     } catch (err) {
@@ -864,23 +980,37 @@ exports.isAuthorized = async (req, res, next) => {
   const provider = req.path.split('/')[2];
   const token = req.user.tokens.find((token) => token.kind === provider);
   if (token) {
-    if (token.accessTokenExpires && moment(token.accessTokenExpires).isBefore(moment().subtract(1, 'minutes'))) {
+    if (
+      token.accessTokenExpires &&
+      moment(token.accessTokenExpires).isBefore(moment().subtract(1, 'minutes'))
+    ) {
       if (token.refreshToken) {
-        if (token.refreshTokenExpires && moment(token.refreshTokenExpires).isBefore(moment().subtract(1, 'minutes'))) {
+        if (
+          token.refreshTokenExpires &&
+          moment(token.refreshTokenExpires).isBefore(moment().subtract(1, 'minutes'))
+        ) {
           return res.redirect(`/auth/${provider}`);
         }
         try {
           const newTokens = await new Promise((resolve, reject) => {
-            refresh.requestNewAccessToken(`${provider}`, token.refreshToken, (err, accessToken, refreshToken, params) => {
-              if (err) reject(err);
-              resolve({ accessToken, refreshToken, params });
-            });
+            refresh.requestNewAccessToken(
+              `${provider}`,
+              token.refreshToken,
+              (err, accessToken, refreshToken, params) => {
+                if (err) reject(err);
+                resolve({ accessToken, refreshToken, params });
+              },
+            );
           });
 
           req.user.tokens.forEach((tokenObject) => {
             if (tokenObject.kind === provider) {
               tokenObject.accessToken = newTokens.accessToken;
-              if (newTokens.params.expires_in) tokenObject.accessTokenExpires = moment().add(newTokens.params.expires_in, 'seconds').format();
+              if (newTokens.params.expires_in) {
+                tokenObject.accessTokenExpires = moment()
+                  .add(newTokens.params.expires_in, 'seconds')
+                  .format();
+              }
             }
           });
 
@@ -900,6 +1030,20 @@ exports.isAuthorized = async (req, res, next) => {
     return res.redirect(`/auth/${provider}`);
   }
 };
+
+
+/**
+ * Spotify integration.
+ */
+const SpotifyStrategy = require('passport-spotify').Strategy;
+const secrets = require('./secrets');
+passport.use(new SpotifyStrategy({
+  clientID: secrets.spotify.clientID,
+  clientSecret: secrets.spotify.clientSecret,
+  callbackURL: secrets.spotify.callbackURL
+}, function(accessToken, refreshToken, profile, done) {
+  return done(null, profile);
+}));
 
 // Add export for testing the internal function
 exports._saveOAuth2UserTokens = saveOAuth2UserTokens;

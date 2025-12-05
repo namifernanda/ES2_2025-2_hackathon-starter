@@ -48,13 +48,19 @@ describe('Nodemailer Config', () => {
     expect(transporterStub.sendMail.calledOnce).to.be.true;
     expect(flashStub.calledOnce).to.be.true;
     expect(flashStub.firstCall.args[0]).to.equal('success');
-    expect(flashStub.firstCall.args[1]).to.deep.equal({ msg: 'Email sent successfully' });
+    expect(flashStub.firstCall.args[1]).to.deep.equal({
+      msg: 'Email sent successfully',
+    });
   });
 
   it('should retry with lowered security after self-signed certificate error', async () => {
     // eslint-disable-next-line global-require
     const nodemailerConfig = require('../config/nodemailer');
-    transporterStub.sendMail.onFirstCall().rejects(new Error('self signed certificate in certificate chain')).onSecondCall().resolves({ messageId: 'test-id' });
+    transporterStub.sendMail
+      .onFirstCall()
+      .rejects(new Error('self signed certificate in certificate chain'))
+      .onSecondCall()
+      .resolves({ messageId: 'test-id' });
 
     const settings = {
       mailOptions: {
@@ -75,7 +81,9 @@ describe('Nodemailer Config', () => {
     expect(transporterStub.sendMail.calledTwice).to.be.true;
     expect(flashStub.calledOnce).to.be.true;
     expect(flashStub.firstCall.args[0]).to.equal('success');
-    expect(flashStub.firstCall.args[1]).to.deep.equal({ msg: 'Email sent successfully' });
+    expect(flashStub.firstCall.args[1]).to.deep.equal({
+      msg: 'Email sent successfully',
+    });
   });
 
   it('should handle general error', async () => {
@@ -102,7 +110,9 @@ describe('Nodemailer Config', () => {
     expect(transporterStub.sendMail.calledOnce).to.be.true;
     expect(flashStub.calledOnce).to.be.true;
     expect(flashStub.firstCall.args[0]).to.equal('errors');
-    expect(flashStub.firstCall.args[1]).to.deep.equal({ msg: 'Failed to send email' });
+    expect(flashStub.firstCall.args[1]).to.deep.equal({
+      msg: 'Failed to send email',
+    });
     expect(result).to.be.instanceOf(Error);
     expect(result.message).to.equal('General error');
   });
@@ -110,7 +120,11 @@ describe('Nodemailer Config', () => {
   it('should handle retry failure after self-signed certificate error', async () => {
     // eslint-disable-next-line global-require
     const nodemailerConfig = require('../config/nodemailer');
-    transporterStub.sendMail.onFirstCall().rejects(new Error('self signed certificate in certificate chain')).onSecondCall().rejects(new Error('Retry failed'));
+    transporterStub.sendMail
+      .onFirstCall()
+      .rejects(new Error('self signed certificate in certificate chain'))
+      .onSecondCall()
+      .rejects(new Error('Retry failed'));
 
     const settings = {
       mailOptions: {
@@ -131,7 +145,9 @@ describe('Nodemailer Config', () => {
     expect(transporterStub.sendMail.calledTwice).to.be.true;
     expect(flashStub.calledOnce).to.be.true;
     expect(flashStub.firstCall.args[0]).to.equal('errors');
-    expect(flashStub.firstCall.args[1]).to.deep.equal({ msg: 'Failed to send email' });
+    expect(flashStub.firstCall.args[1]).to.deep.equal({
+      msg: 'Failed to send email',
+    });
     expect(result).to.be.instanceOf(Error);
     expect(result.message).to.equal('Retry failed');
   });

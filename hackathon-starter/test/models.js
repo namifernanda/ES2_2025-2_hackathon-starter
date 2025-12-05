@@ -122,7 +122,10 @@ describe('User Model', () => {
       nRemoved: 1,
     };
 
-    userMock.expects('deleteOne').withArgs({ email: 'test@gmail.com' }).yields(null, expectedResult);
+    userMock
+      .expects('deleteOne')
+      .withArgs({ email: 'test@gmail.com' })
+      .yields(null, expectedResult);
 
     User.deleteOne({ email: 'test@gmail.com' }, (err, result) => {
       userMock.verify();

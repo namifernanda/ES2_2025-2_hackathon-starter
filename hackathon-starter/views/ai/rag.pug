@@ -10,13 +10,22 @@ block content
     a.btn.btn-primary.w-100(href='https://api.together.ai/', target='_blank')
       i.fas.fa-hexagon-nodes.fa-sm.iconpadding
       | Together.ai Inference API
-    a.btn.btn-primary.w-100(href='https://huggingface.co/docs/api-inference/index', target='_blank')
+    a.btn.btn-primary.w-100(
+      href='https://huggingface.co/docs/api-inference/index',
+      target='_blank'
+    )
       i.fas.fa-arrow-up-1-9.fa-sm.iconpadding
       | Hugging Face Inference API
-    a.btn.btn-primary.w-100(href='https://www.mongodb.com/docs/atlas/atlas-vector-search/', target='_blank')
+    a.btn.btn-primary.w-100(
+      href='https://www.mongodb.com/docs/atlas/atlas-vector-search/',
+      target='_blank'
+    )
       i.fas.fa-database.fa-sm.iconpadding
       | MongoDB Vector Search
-    a.btn.btn-primary.w-100(href='https://js.langchain.com/docs/integrations/vectorstores/mongodb_atlas', target='_blank')
+    a.btn.btn-primary.w-100(
+      href='https://js.langchain.com/docs/integrations/vectorstores/mongodb_atlas',
+      target='_blank'
+    )
       i.fas.fa-link.fa-sm.iconpadding
       | LangChain.js
 
@@ -97,7 +106,12 @@ block content
               .form-group
                 strong
                   label(for='question') Your Question:
-                textarea#question.form-control(name='question', rows='3', maxlength=maxInputLength, required)= question
+                textarea#question.form-control(
+                  name='question',
+                  rows='3',
+                  maxlength=maxInputLength,
+                  required
+                )= question
               button#ask-btn.btn.btn-primary.btn-lg.w-100.mt-3(type='submit')
                 i.fas.fa-paper-plane.fa-sm.iconpadding
                 | Ask
@@ -124,7 +138,10 @@ block content
             p
               | The commented source code, including helper functions, is in controllers/ai.js
           .col-md-7.text-center
-            img.img-fluid.w-100.rounded.mx-auto.d-block(src='https://i.imgur.com/gbr4Pta.png', alt='RAG Demo Block Diagram')
+            img.img-fluid.w-100.rounded.mx-auto.d-block(
+              src='https://i.imgur.com/gbr4Pta.png',
+              alt='RAG Demo Block Diagram'
+            )
     hr.border-primary.my-4
     style.
       .response-box {

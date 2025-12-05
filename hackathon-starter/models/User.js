@@ -159,7 +159,11 @@ userSchema.methods.verifyTokenAndIp = function verifyTokenAndIp(token, ip, token
       return false;
     }
 
-    return crypto.timingSafeEqual(storedToken, inputToken) && this[ipHashField] === hashedIp && this[expiresField] > Date.now();
+    return (
+      crypto.timingSafeEqual(storedToken, inputToken) &&
+      this[ipHashField] === hashedIp &&
+      this[expiresField] > Date.now()
+    );
   } catch (err) {
     console.log(err);
     return false;

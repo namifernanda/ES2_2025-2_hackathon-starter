@@ -56,7 +56,11 @@ block content
               each tag in otherTwitchStreamStatus.tags
                 span.badge.bg-primary.text-dark.mx-2= tag
             br
-            img(src=otherTwitchStreamStatus.thumbnail_url.replace('{width}x{height}', '640x360'), width='640', height='360')
+            img(
+              src=otherTwitchStreamStatus.thumbnail_url.replace('{width}x{height}', '640x360'),
+              width='640',
+              height='360'
+            )
           else
             span.status.text-danger
               i.fas.fa-circle

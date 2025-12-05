@@ -7,10 +7,16 @@ block content
       | Google Maps JavaScript API
 
   .btn-group.d-flex(role='group')
-    a.btn.btn-primary.w-100(href='https://developers.google.com/maps/documentation/javascript/tutorial', target='_blank')
+    a.btn.btn-primary.w-100(
+      href='https://developers.google.com/maps/documentation/javascript/tutorial',
+      target='_blank'
+    )
       i.far.fa-check-square.fa-sm.iconpadding
       | Getting Started
-    a.btn.btn-primary.w-100(href='https://console.developers.google.com/apis/dashboard', target='_blank')
+    a.btn.btn-primary.w-100(
+      href='https://console.developers.google.com/apis/dashboard',
+      target='_blank'
+    )
       i.fas.fa-laptop.fa-sm.iconpadding
       | API Console
 
@@ -22,7 +28,9 @@ block content
       #map(style='height: 500px')
 
   script(src='https://polyfill.io/v3/polyfill.min.js?features=default')
-  script(src=`https://maps.googleapis.com/maps/api/js?key=${google_map_api_key}&libraries=marker&loading=async`)
+  script(
+    src=`https://maps.googleapis.com/maps/api/js?key=${google_map_api_key}&libraries=marker&loading=async`
+  )
   script.
     let map;
     let mapLoaded = false;

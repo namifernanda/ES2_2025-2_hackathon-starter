@@ -1,7 +1,7 @@
 const crypto = require('crypto');
 const fs = require('fs');
 const multer = require('multer');
-const path = require('path');
+const path = require('node:path');
 const { PDFLoader } = require('@langchain/community/document_loaders/fs/pdf');
 const { RecursiveCharacterTextSplitter } = require('@langchain/textsplitters');
 const { HuggingFaceInferenceEmbeddings } = require('@langchain/community/embeddings/hf');
@@ -64,7 +64,11 @@ async function createCollectionForVectorSearch(db, collectionName, indexes) {
         mappings: {
           dynamic: true,
           fields: {
-            embedding: { dimensions: 1024, similarity: 'cosine', type: 'knnVector' },
+            embedding: {
+              dimensions: 1024,
+              similarity: 'cosine',
+              type: 'knnVector',
+            },
           },
         },
       },
@@ -89,24 +93,33 @@ async function setupRagCollection(db) {
   // to avoid duplicate data in the vector DB.
   // We use fileName to list the files that have been ingested in the frontend.
   // llm_string and prompt combo is used to see if we have already processed the same LLM query.
-  const ragCollection = await createCollectionForVectorSearch(db, RAG_CHUNKS, [{ fileHash: 1 }, { fileName: 1 }]); // for the RAG chunks from input documents
+  const ragCollection = await createCollectionForVectorSearch(db, RAG_CHUNKS, [
+    { fileHash: 1 },
+    { fileName: 1 },
+  ]); // for the RAG chunks from input documents
   await createCollectionForVectorSearch(db, LLM_SEMANTIC_CACHE, [{ llm_string: 1, prompt: 1 }]); // for the LLM semantic cache so we can reduce LLM calls and related costs
 
   // Create the document embedding cache collection if it doesn't exist
   const docCacheCollections = await db.listCollections({ name: DOC_EMBEDDINGS_CACHE }).toArray();
   if (docCacheCollections.length === 0) {
     await db.createCollection(DOC_EMBEDDINGS_CACHE);
-    console.log(`Created collection ${DOC_EMBEDDINGS_CACHE} for permanent document embedding cache.`);
+    console.log(
+      `Created collection ${DOC_EMBEDDINGS_CACHE} for permanent document embedding cache.`,
+    );
   }
 
   // Create the query embedding cache collection with TTL if it doesn't exist
-  const queryCacheCollections = await db.listCollections({ name: QUERY_EMBEDDINGS_CACHE }).toArray();
+  const queryCacheCollections = await db
+    .listCollections({ name: QUERY_EMBEDDINGS_CACHE })
+    .toArray();
   if (queryCacheCollections.length === 0) {
     await db.createCollection(QUERY_EMBEDDINGS_CACHE);
     console.log(`Created collection ${QUERY_EMBEDDINGS_CACHE} for query embedding cache with TTL.`);
 
     // Set a TTL index (60 days) for automatic expiration
-    await db.collection(QUERY_EMBEDDINGS_CACHE).createIndex({ createdAt: 1 }, { expireAfterSeconds: 5184000 }); // 60 days
+    await db
+      .collection(QUERY_EMBEDDINGS_CACHE)
+      .createIndex({ createdAt: 1 }, { expireAfterSeconds: 5184000 }); // 60 days
     console.log('Created TTL index on query embedding cache (expiration: 60 days).');
   }
   ragCollectionReady = true;
@@ -121,11 +134,21 @@ async function setVectorIndex(collection, indexDefinition) {
   const existingIndexes = await collection.listSearchIndexes().toArray();
   const defaultIndex = existingIndexes.find((index) => index.name === 'default');
   if (!defaultIndex) {
-    await collection.createSearchIndex({ name: 'default', definition: indexDefinition });
-    console.log(`Created vector search index for ${collection.collectionName} with dimensions: ${indexDefinition.mappings.fields.embedding.dimensions}.`);
-  } else if (defaultIndex.latestDefinition?.mappings?.fields?.embedding?.dimensions !== indexDefinition.mappings.fields.embedding.dimensions) {
+    await collection.createSearchIndex({
+      name: 'default',
+      definition: indexDefinition,
+    });
+    console.log(
+      `Created vector search index for ${collection.collectionName} with dimensions: ${indexDefinition.mappings.fields.embedding.dimensions}.`,
+    );
+  } else if (
+    defaultIndex.latestDefinition?.mappings?.fields?.embedding?.dimensions !==
+    indexDefinition.mappings.fields.embedding.dimensions
+  ) {
     await collection.updateSearchIndex('default', indexDefinition);
-    console.log(`Updated vector search index for ${collection.collectionName} with dimensions: ${indexDefinition.mappings.fields.embedding.dimensions}.`);
+    console.log(
+      `Updated vector search index for ${collection.collectionName} with dimensions: ${indexDefinition.mappings.fields.embedding.dimensions}.`,
+    );
   }
 }
 
@@ -143,7 +166,11 @@ async function configureVectorIndex(db) {
       mappings: {
         dynamic: true,
         fields: {
-          embedding: { dimensions: sampleDoc.embedding.length, similarity: 'cosine', type: 'knnVector' },
+          embedding: {
+            dimensions: sampleDoc.embedding.length,
+            similarity: 'cosine',
+            type: 'knnVector',
+          },
         },
       },
     };
@@ -169,7 +196,9 @@ exports.getRag = async (req, res) => {
   try {
     await client.connect();
     const db = client.db();
-    const collection = ragCollectionReady ? db.collection(RAG_CHUNKS) : await setupRagCollection(db);
+    const collection = ragCollectionReady
+      ? db.collection(RAG_CHUNKS)
+      : await setupRagCollection(db);
     ingestedFiles = await collection.distinct('fileName');
   } catch (err) {
     console.log(err);
@@ -216,9 +245,15 @@ exports.postRagIngest = async (req, res) => {
   try {
     await client.connect();
     const db = client.db();
-    const collection = ragCollectionReady ? db.collection(RAG_CHUNKS) : await setupRagCollection(db);
-    const documentEmbeddingsCache = new MongoDBStore({ collection: db.collection(DOC_EMBEDDINGS_CACHE) });
-    const queryEmbeddingsCache = new MongoDBStore({ collection: db.collection(QUERY_EMBEDDINGS_CACHE) });
+    const collection = ragCollectionReady
+      ? db.collection(RAG_CHUNKS)
+      : await setupRagCollection(db);
+    const documentEmbeddingsCache = new MongoDBStore({
+      collection: db.collection(DOC_EMBEDDINGS_CACHE),
+    });
+    const queryEmbeddingsCache = new MongoDBStore({
+      collection: db.collection(QUERY_EMBEDDINGS_CACHE),
+    });
 
     // Process files sequentially using reduce
     await files.reduce(async (promise, file) => {
@@ -234,7 +269,9 @@ exports.postRagIngest = async (req, res) => {
       // under a different name, etc.
       const hashCount = await collection.countDocuments({ fileHash: hash });
       if (hashCount > 0) {
-        console.log(`File ${file} already processed (hash: ${hash}, found ${hashCount} existing chunks).`);
+        console.log(
+          `File ${file} already processed (hash: ${hash}, found ${hashCount} existing chunks).`,
+        );
         skipped.push(file);
         // Move to ingested even if skipped
         fs.renameSync(filePath, path.join(ingestedDir, file));
@@ -252,7 +289,10 @@ exports.postRagIngest = async (req, res) => {
         // When querying the model later, the vector search finds the most relevant chunks
         // based on text similarity and sends them to the LLM as context. The chunk size
         // and overlap can be adjusted for performance.
-        const splitter = new RecursiveCharacterTextSplitter({ chunkSize: 1000, chunkOverlap: 200 });
+        const splitter = new RecursiveCharacterTextSplitter({
+          chunkSize: 1000,
+          chunkOverlap: 200,
+        });
         const chunks = await splitter.splitDocuments(docs);
         const chunksWithMetadata = chunks.map((chunk) => ({
           ...chunk,
@@ -344,9 +384,15 @@ exports.postRagAsk = async (req, res) => {
   try {
     await client.connect();
     const db = client.db();
-    const collection = ragCollectionReady ? db.collection(RAG_CHUNKS) : await setupRagCollection(db);
-    const documentEmbeddingsCache = new MongoDBStore({ collection: db.collection(DOC_EMBEDDINGS_CACHE) });
-    const queryEmbeddingsCache = new MongoDBStore({ collection: db.collection(QUERY_EMBEDDINGS_CACHE) });
+    const collection = ragCollectionReady
+      ? db.collection(RAG_CHUNKS)
+      : await setupRagCollection(db);
+    const documentEmbeddingsCache = new MongoDBStore({
+      collection: db.collection(DOC_EMBEDDINGS_CACHE),
+    });
+    const queryEmbeddingsCache = new MongoDBStore({
+      collection: db.collection(QUERY_EMBEDDINGS_CACHE),
+    });
     const llmSemCacheCollection = db.collection(LLM_SEMANTIC_CACHE);
 
     // Get list of ingested files for display in the frontend
@@ -365,14 +411,22 @@ exports.postRagAsk = async (req, res) => {
     }
 
     // Check if the vector search index is ready
-    const ragCollectionStatus = (await collection.listSearchIndexes().toArray()).find((index) => index.name === 'default').status;
+    const ragCollectionStatus = (await collection.listSearchIndexes().toArray()).find(
+      (index) => index.name === 'default',
+    ).status;
     if (ragCollectionStatus !== 'READY') {
-      req.flash('errors', { msg: `RAG search index is not ready - status: ${ragCollectionStatus}. Please try again in a few minutes.` });
+      req.flash('errors', {
+        msg: `RAG search index is not ready - status: ${ragCollectionStatus}. Please try again in a few minutes.`,
+      });
       return res.redirect('/ai/rag');
     }
-    const llmSemCacheCollectionStatus = (await llmSemCacheCollection.listSearchIndexes().toArray()).find((index) => index.name === 'default').status;
+    const llmSemCacheCollectionStatus = (
+      await llmSemCacheCollection.listSearchIndexes().toArray()
+    ).find((index) => index.name === 'default').status;
     if (llmSemCacheCollectionStatus !== 'READY') {
-      req.flash('errors', { msg: `LLM semantic cache search index is not ready - status: ${llmSemCacheCollectionStatus}. Please try again in a few minutes.` });
+      req.flash('errors', {
+        msg: `LLM semantic cache search index is not ready - status: ${llmSemCacheCollectionStatus}. Please try again in a few minutes.`,
+      });
       return res.redirect('/ai/rag');
     }
 
@@ -424,11 +478,16 @@ exports.postRagAsk = async (req, res) => {
     const llmPrompt = `Answer the following question as best as you can:\n${question}\nAnswer:`;
 
     // Run batch LLM calls
-    const results = await llm.generate([[new HumanMessage(ragPrompt)], [new HumanMessage(llmPrompt)]]);
+    const results = await llm.generate([
+      [new HumanMessage(ragPrompt)],
+      [new HumanMessage(llmPrompt)],
+    ]);
 
     // Before parsing the results, check to see if we have a valid response so we don't crash
     if (!results?.generations?.length || results.generations.length < 2) {
-      req.flash('errors', { msg: `Unable to get a valid response from the LLM. Please try again.` });
+      req.flash('errors', {
+        msg: `Unable to get a valid response from the LLM. Please try again.`,
+      });
       return res.redirect('/ai/rag');
     }
     const ragResponse = results.generations[0][0].text;
@@ -492,7 +551,10 @@ exports.postOpenAIModeration = async (req, res) => {
       });
       if (!response.ok) {
         const errData = await response.json().catch(() => ({}));
-        error = errData.error && errData.error.message ? errData.error.message : `API Error: ${response.status}`;
+        error =
+          errData.error && errData.error.message
+            ? errData.error.message
+            : `API Error: ${response.status}`;
       } else {
         const data = await response.json();
         result = data.results && data.results[0];
@@ -529,7 +591,10 @@ const callTogetherAiApi = async (apiRequestBody, apiKey) => {
   if (!response.ok) {
     const errData = await response.json().catch(() => ({}));
     console.error('Together AI API Error Response:', errData);
-    const errorMessage = errData.error && errData.error.message ? errData.error.message : `API Error: ${response.status}`;
+    const errorMessage =
+      errData.error && errData.error.message
+        ? errData.error.message
+        : `API Error: ${response.status}`;
     throw new Error(errorMessage);
   }
   return response.json();
@@ -558,7 +623,13 @@ const createVisionLLMRequestBody = (dataUrl, model) => ({
 });
 
 const extractVisionAnalysis = (data) => {
-  if (data.choices && Array.isArray(data.choices) && data.choices.length > 0 && data.choices[0].message && data.choices[0].message.content) {
+  if (
+    data.choices &&
+    Array.isArray(data.choices) &&
+    data.choices.length > 0 &&
+    data.choices[0].message &&
+    data.choices[0].message.content
+  ) {
     return data.choices[0].message.content;
   }
   return 'No vision analysis available';
@@ -672,7 +743,6 @@ exports.postTogetherAICamera = async (req, res) => {
     }
     const dataUrl = createImageDataUrl(req.file);
     const apiRequestBody = createVisionLLMRequestBody(dataUrl, togetherAiModel);
-    // console.log('Making Vision API request to Together AI...');
     const data = await callTogetherAiApi(apiRequestBody, togetherAiKey);
     const analysis = extractVisionAnalysis(data);
     // console.log('Vision analysis completed:', analysis);
@@ -720,9 +790,17 @@ exports.postTogetherAIClassifier = async (req, res) => {
   } else {
     try {
       const systemPrompt = messageClassifierSystemPrompt; // Your existing system prompt here
-      const apiRequestBody = createClassifierLLMRequestBody(inputText, togetherAiModel, systemPrompt);
+      const apiRequestBody = createClassifierLLMRequestBody(
+        inputText,
+        togetherAiModel,
+        systemPrompt,
+      );
       const data = await callTogetherAiApi(apiRequestBody, togetherAiKey);
-      const content = data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content;
+      const content =
+        data.choices &&
+        data.choices[0] &&
+        data.choices[0].message &&
+        data.choices[0].message.content;
       const department = extractClassifierResponse(content);
       result = {
         department,

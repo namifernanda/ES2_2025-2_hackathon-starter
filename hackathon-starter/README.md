@@ -712,9 +712,11 @@ input(type='hidden', name='_csrf', value=_csrf)
 That's a custom error message defined in `app.js` to indicate that there was a problem connecting to MongoDB:
 
 ```js
-mongoose.connection.on('error', (err) => {
+mongoose.connection.on("error", (err) => {
   console.error(err);
-  console.log('%s MongoDB connection error. Please make sure MongoDB is running.');
+  console.log(
+    "%s MongoDB connection error. Please make sure MongoDB is running.",
+  );
   process.exit(1);
 });
 ```
@@ -767,8 +769,8 @@ Let's see how it looks. Create a new controller **escapeVelocity** inside `contr
 
 ```js
 exports.escapeVelocity = (req, res) => {
-  res.render('escape-velocity', {
-    title: 'Landing Page',
+  res.render("escape-velocity", {
+    title: "Landing Page",
   });
 };
 ```
@@ -776,7 +778,7 @@ exports.escapeVelocity = (req, res) => {
 And then create a route in `app.js`. I placed it right after the index controller:
 
 ```js
-app.get('/escape-velocity', homeController.escapeVelocity);
+app.get("/escape-velocity", homeController.escapeVelocity);
 ```
 
 Restart the server (if you are not using **nodemon**); then you should see the new template at `http://localhost:8080/escape-velocity`
@@ -813,8 +815,12 @@ To clarify that, _express-validator_ module which is used for validating and san
 
 ```js
 [
-  { param: 'name', msg: 'Name is required', value: '<received input>' },
-  { param: 'email', msg: 'A valid email is required', value: '<received input>' },
+  { param: "name", msg: "Name is required", value: "<received input>" },
+  {
+    param: "email",
+    msg: "A valid email is required",
+    value: "<received input>",
+  },
 ];
 ```
 
@@ -860,7 +866,7 @@ A more correct way to say this would be "How do I create a new route?" The main 
 Each route has a callback function associated with it. Sometimes you will see three or more arguments for a route. In a case like that, the first argument is still a URL string, while middle arguments are what's called middleware. Think of middleware as a door. If this door prevents you from continuing forward, you won't get to your callback function. One such example is a route that requires authentication.
 
 ```js
-app.get('/account', passportConfig.isAuthenticated, userController.getAccount);
+app.get("/account", passportConfig.isAuthenticated, userController.getAccount);
 ```
 
 It always goes from left to right. A user visits `/account` page. Then `isAuthenticated` middleware checks if you are authenticated:
@@ -870,7 +876,7 @@ exports.isAuthenticated = (req, res, next) => {
   if (req.isAuthenticated()) {
     return next();
   }
-  res.redirect('/login');
+  res.redirect("/login");
 };
 ```
 
@@ -879,8 +885,8 @@ next middleware until it reaches the last argument, which is a callback function
 
 ```js
 exports.getAccount = (req, res) => {
-  res.render('account/profile', {
-    title: 'Account Management',
+  res.render("account/profile", {
+    title: "Account Management",
   });
 };
 ```
@@ -893,7 +899,7 @@ Here is a typical workflow for adding new routes to your application. Let's say 
 **Step 1.** Start by defining a route.
 
 ```js
-app.get('/books', bookController.getBooks);
+app.get("/books", bookController.getBooks);
 ```
 
 ---
@@ -901,13 +907,23 @@ app.get('/books', bookController.getBooks);
 **Note:** As of Express 4.x you can define your routes like so:
 
 ```js
-app.route('/books').get(bookController.getBooks).post(bookController.createBooks).put(bookController.updateBooks).delete(bookController.deleteBooks);
+app
+  .route("/books")
+  .get(bookController.getBooks)
+  .post(bookController.createBooks)
+  .put(bookController.updateBooks)
+  .delete(bookController.deleteBooks);
 ```
 
 And here is how a route would look if it required an _authentication_ and an _authorization_ middleware:
 
 ```js
-app.route('/api/twitch').all(passportConfig.isAuthenticated).all(passportConfig.isAuthorized).get(apiController.getTwitch).post(apiController.postTwitch);
+app
+  .route("/api/twitch")
+  .all(passportConfig.isAuthenticated)
+  .all(passportConfig.isAuthorized)
+  .get(apiController.getTwitch)
+  .post(apiController.postTwitch);
 ```
 
 Use whichever style makes sense to you. Either one is acceptable. I think that chaining HTTP verbs on `app.route` is a very clean and elegant approach, but on the other hand, I can no longer see all my routes at a glance when you have one route per line.
@@ -915,13 +931,13 @@ Use whichever style makes sense to you. Either one is acceptable. I think that c
 **Step 2.** Create a new schema and a model `Book.js` inside the _models_ directory.
 
 ```js
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 const bookSchema = new mongoose.Schema({
   name: String,
 });
 
-const Book = mongoose.model('Book', bookSchema);
+const Book = mongoose.model("Book", bookSchema);
 module.exports = Book;
 ```
 
@@ -932,11 +948,11 @@ module.exports = Book;
  * GET /books
  * List all books.
  */
-const Book = require('../models/Book.js');
+const Book = require("../models/Book.js");
 
 exports.getBooks = (req, res) => {
   Book.find((err, docs) => {
-    res.render('books', { books: docs });
+    res.render("books", { books: docs });
   });
 };
 ```
@@ -944,7 +960,7 @@ exports.getBooks = (req, res) => {
 **Step 4.** Import that controller in `app.js`.
 
 ```js
-const bookController = require('./controllers/book');
+const bookController = require("./controllers/book");
 ```
 
 **Step 5.** Create `books.pug` template.
@@ -964,9 +980,9 @@ block content
 That's it! I will say that you could have combined Step 1, 2, 3 as following:
 
 ```js
-app.get('/books', (req, res) => {
+app.get("/books", (req, res) => {
   Book.find((err, docs) => {
-    res.render('books', { books: docs });
+    res.render("books", { books: docs });
   });
 });
 ```
@@ -1004,8 +1020,8 @@ Replace `const app = express();` with the following code:
 
 ```js
 const app = express();
-const server = require('http').Server(app);
-const io = require('socket.io')(server);
+const server = require("http").Server(app);
+const io = require("socket.io")(server);
 ```
 
 I like to have the following code organization in `app.js` (from top to bottom): module dependencies,
@@ -1015,13 +1031,13 @@ start the server, socket.io stuff. That way I always know where to look for thin
 Add the following code at the end of `app.js`:
 
 ```js
-io.on('connection', (socket) => {
-  socket.emit('greet', { hello: 'Hey there browser!' });
-  socket.on('respond', (data) => {
+io.on("connection", (socket) => {
+  socket.emit("greet", { hello: "Hey there browser!" });
+  socket.on("respond", (data) => {
     console.log(data);
   });
-  socket.on('disconnect', () => {
-    console.log('Socket disconnected');
+  socket.on("disconnect", () => {
+    console.log("Socket disconnected");
   });
 });
 ```
@@ -1064,9 +1080,9 @@ If you want to have JavaScript code separate from templates, move that inline sc
 $(document).ready(function () {
   // Place JavaScript code here...
   let socket = io.connect(window.location.href);
-  socket.on('greet', function (data) {
+  socket.on("greet", function (data) {
     console.log(data);
-    socket.emit('respond', { message: 'Hey there, server!' });
+    socket.emit("respond", { message: "Hey there, server!" });
   });
 });
 ```
@@ -1082,7 +1098,7 @@ And we are done!
 Declares a read-only named constant.
 
 ```js
-const name = 'yourName';
+const name = "yourName";
 ```
 
 Declares a block scope local variable.
@@ -1096,7 +1112,7 @@ let index = 0;
 Using the **\`${}\`** syntax, strings can embed expressions.
 
 ```js
-const name = 'Oggy';
+const name = "Oggy";
 const age = 3;
 
 console.log(`My cat is named ${name} and is ${age} years old.`);
@@ -1107,11 +1123,11 @@ console.log(`My cat is named ${name} and is ${age} years old.`);
 To import functions, objects, or primitives exported from an external module. These are the most common types of importing.
 
 ```js
-const name = require('module-name');
+const name = require("module-name");
 ```
 
 ```js
-const { foo, bar } = require('module-name');
+const { foo, bar } = require("module-name");
 ```
 
 To export functions, objects, or primitives from a given file or module.
@@ -1121,7 +1137,7 @@ module.exports = { myFunction };
 ```
 
 ```js
-module.exports.name = 'yourName';
+module.exports.name = "yourName";
 ```
 
 ```js
@@ -1258,14 +1274,14 @@ var MM = now.getMonth() + 1;
 var YYYY = now.getFullYear();
 
 if (DD < 10) {
-  DD = '0' + DD;
+  DD = "0" + DD;
 }
 
 if (MM < 10) {
-  MM = '0' + MM;
+  MM = "0" + MM;
 }
 
-console.log(MM + '-' + DD + '-' + YYYY); // 03-30-2016
+console.log(MM + "-" + DD + "-" + YYYY); // 03-30-2016
 ```
 
 ```MomentJS
@@ -1277,13 +1293,13 @@ console.log(moment(new Date(), 'MM-DD-YYYY'));
 var now = new Date();
 var hours = now.getHours();
 var minutes = now.getMinutes();
-var amPm = hours >= 12 ? 'pm' : 'am';
+var amPm = hours >= 12 ? "pm" : "am";
 
 hours = hours % 12;
 hours = hours ? hours : 12;
-minutes = minutes < 10 ? '0' + minutes : minutes;
+minutes = minutes < 10 ? "0" + minutes : minutes;
 
-console.log(hours + ':' + minutes + ' ' + amPm); // 1:43 am
+console.log(hours + ":" + minutes + " " + amPm); // 1:43 am
 ```
 
 ```MomentJS
@@ -1327,7 +1343,7 @@ User.find((err, users) => {
 #### Find a user by email:
 
 ```js
-let userEmail = 'example@gmail.com';
+let userEmail = "example@gmail.com";
 User.findOne({ email: { $eq: email.toLowerCase() } }).then((user) => {
   console.log(user);
 });
@@ -1349,9 +1365,12 @@ User.find()
 Let's suppose that each user has a `votes` field and you would like to count the total number of votes in your database across all users. One very inefficient way would be to loop through each document and manually accumulate the count. Or you could use [MongoDB Aggregation Framework](https://docs.mongodb.org/manual/core/aggregation-introduction/) instead:
 
 ```js
-User.aggregate({ $group: { _id: null, total: { $sum: '$votes' } } }, (err, votesCount) => {
-  console.log(votesCount.total);
-});
+User.aggregate(
+  { $group: { _id: null, total: { $sum: "$votes" } } },
+  (err, votesCount) => {
+    console.log(votesCount.total);
+  },
+);
 ```
 
 :top: <sub>[**back to top**](#table-of-contents)</sub>

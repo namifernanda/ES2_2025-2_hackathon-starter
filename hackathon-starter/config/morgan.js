@@ -89,7 +89,9 @@ logger.token('transfer-state', (req, res) => {
 // compliance with GDPR and other privacy regulations.
 // Also using a function so we can test it in our unit tests.
 const getMorganFormat = () =>
-  process.env.NODE_ENV === 'production' ? ':short-date :method :url :colored-status :response-time[0]ms :bytes-sent :transfer-state - :parsed-user-agent' : ':short-date :method :url :colored-status :response-time[0]ms :bytes-sent :transfer-state :remote-addr :parsed-user-agent';
+  process.env.NODE_ENV === 'production'
+    ? ':short-date :method :url :colored-status :response-time[0]ms :bytes-sent :transfer-state - :parsed-user-agent'
+    : ':short-date :method :url :colored-status :response-time[0]ms :bytes-sent :transfer-state :remote-addr :parsed-user-agent';
 
 // Set the format once at initialization for the actual middleware so we don't have to evaluate on each call
 const morganFormat = getMorganFormat();

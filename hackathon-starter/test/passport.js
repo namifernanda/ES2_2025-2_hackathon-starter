@@ -210,7 +210,15 @@ describe('Passport Config', () => {
       const providerName = 'quickbooks';
       const tokenConfig = { quickbooks: 'some-realm-id' };
 
-      _saveOAuth2UserTokens(req, accessToken, refreshToken, accessTokenExpiration, refreshTokenExpiration, providerName, tokenConfig)
+      _saveOAuth2UserTokens(
+        req,
+        accessToken,
+        refreshToken,
+        accessTokenExpiration,
+        refreshTokenExpiration,
+        providerName,
+        tokenConfig,
+      )
         .then(() => {
           expect(req.user.tokens).to.have.lengthOf(1);
           expect(req.user.tokens[0]).to.include({
@@ -239,7 +247,14 @@ describe('Passport Config', () => {
       const refreshTokenExpiration = null;
       const providerName = 'google';
 
-      _saveOAuth2UserTokens(req, accessToken, refreshToken, accessTokenExpiration, refreshTokenExpiration, providerName)
+      _saveOAuth2UserTokens(
+        req,
+        accessToken,
+        refreshToken,
+        accessTokenExpiration,
+        refreshTokenExpiration,
+        providerName,
+      )
         .then(() => {
           expect(req.user.tokens).to.have.lengthOf(1);
           expect(req.user.tokens[0].accessToken).to.equal('new-access-token');
@@ -256,10 +271,22 @@ describe('Passport Config', () => {
       const refreshTokenExpiration = 31536000;
       const providerName = 'quickbooks';
 
-      _saveOAuth2UserTokens(req, accessToken, refreshToken, accessTokenExpiration, refreshTokenExpiration, providerName)
+      _saveOAuth2UserTokens(
+        req,
+        accessToken,
+        refreshToken,
+        accessTokenExpiration,
+        refreshTokenExpiration,
+        providerName,
+      )
         .then(() => {
           expect(req.user.tokens[0].refreshToken).to.equal('refresh-token');
-          expect(moment(req.user.tokens[0].refreshTokenExpires).isSame(moment().add(refreshTokenExpiration, 'seconds'), 'minute')).to.be.true;
+          expect(
+            moment(req.user.tokens[0].refreshTokenExpires).isSame(
+              moment().add(refreshTokenExpiration, 'seconds'),
+              'minute',
+            ),
+          ).to.be.true;
           done();
         })
         .catch(done);
@@ -278,7 +305,14 @@ describe('Passport Config', () => {
       const refreshTokenExpiration = null;
       const providerName = 'google';
 
-      _saveOAuth2UserTokens(req, accessToken, refreshToken, accessTokenExpiration, refreshTokenExpiration, providerName)
+      _saveOAuth2UserTokens(
+        req,
+        accessToken,
+        refreshToken,
+        accessTokenExpiration,
+        refreshTokenExpiration,
+        providerName,
+      )
         .then(() => {
           expect(req.user.tokens[0].refreshToken).to.equal('existing-refresh-token');
           done();
@@ -293,13 +327,32 @@ describe('Passport Config', () => {
       const refreshTokenExpiration = 8726400;
       const providerName = 'quickbooks';
 
-      _saveOAuth2UserTokens(req, accessToken, refreshToken, accessTokenExpiration, refreshTokenExpiration, providerName)
+      _saveOAuth2UserTokens(
+        req,
+        accessToken,
+        refreshToken,
+        accessTokenExpiration,
+        refreshTokenExpiration,
+        providerName,
+      )
         .then(() => {
           const expectedAccessExpiration = moment().add(accessTokenExpiration, 'seconds').format();
-          const expectedRefreshExpiration = moment().add(refreshTokenExpiration, 'seconds').format();
+          const expectedRefreshExpiration = moment()
+            .add(refreshTokenExpiration, 'seconds')
+            .format();
 
-          expect(moment(req.user.tokens[0].accessTokenExpires).isSame(expectedAccessExpiration, 'minute')).to.be.true;
-          expect(moment(req.user.tokens[0].refreshTokenExpires).isSame(expectedRefreshExpiration, 'minute')).to.be.true;
+          expect(
+            moment(req.user.tokens[0].accessTokenExpires).isSame(
+              expectedAccessExpiration,
+              'minute',
+            ),
+          ).to.be.true;
+          expect(
+            moment(req.user.tokens[0].refreshTokenExpires).isSame(
+              expectedRefreshExpiration,
+              'minute',
+            ),
+          ).to.be.true;
           done();
         })
         .catch(done);
@@ -312,7 +365,14 @@ describe('Passport Config', () => {
       const refreshTokenExpiration = null;
       const providerName = 'test_provider';
 
-      _saveOAuth2UserTokens(req, accessToken, refreshToken, accessTokenExpiration, refreshTokenExpiration, providerName)
+      _saveOAuth2UserTokens(
+        req,
+        accessToken,
+        refreshToken,
+        accessTokenExpiration,
+        refreshTokenExpiration,
+        providerName,
+      )
         .then(() => {
           expect(req.user.tokens[0].accessToken).to.equal('access-token');
           expect(req.user.tokens[0].accessTokenExpires).to.be.undefined;
@@ -328,7 +388,14 @@ describe('Passport Config', () => {
       const refreshTokenExpiration = null;
       const providerName = 'test_provider';
 
-      _saveOAuth2UserTokens(req, accessToken, refreshToken, accessTokenExpiration, refreshTokenExpiration, providerName)
+      _saveOAuth2UserTokens(
+        req,
+        accessToken,
+        refreshToken,
+        accessTokenExpiration,
+        refreshTokenExpiration,
+        providerName,
+      )
         .then(() => {
           expect(req.user.tokens[0].refreshToken).to.equal('refresh-token');
           expect(req.user.tokens[0].refreshTokenExpires).to.be.undefined;
@@ -351,7 +418,14 @@ describe('Passport Config', () => {
       const refreshTokenExpiration = null;
       const providerName = 'test_provider';
 
-      _saveOAuth2UserTokens(req, accessToken, refreshToken, accessTokenExpiration, refreshTokenExpiration, providerName)
+      _saveOAuth2UserTokens(
+        req,
+        accessToken,
+        refreshToken,
+        accessTokenExpiration,
+        refreshTokenExpiration,
+        providerName,
+      )
         .then(() => {
           expect(req.user.tokens[0].accessTokenExpires).to.be.undefined;
           done();
@@ -374,7 +448,14 @@ describe('Passport Config', () => {
       const refreshTokenExpiration = null;
       const providerName = 'test_provider';
 
-      _saveOAuth2UserTokens(req, accessToken, refreshToken, accessTokenExpiration, refreshTokenExpiration, providerName)
+      _saveOAuth2UserTokens(
+        req,
+        accessToken,
+        refreshToken,
+        accessTokenExpiration,
+        refreshTokenExpiration,
+        providerName,
+      )
         .then(() => {
           expect(req.user.tokens[0].refreshTokenExpires).to.be.undefined;
           expect(req.user.tokens[0].accessTokenExpires).to.not.be.undefined;
@@ -391,7 +472,15 @@ describe('Passport Config', () => {
       const providerName = 'quickbooks';
       const tokenConfig = { quickbooks: 'some-realm-id' };
 
-      _saveOAuth2UserTokens(req, accessToken, refreshToken, accessTokenExpiration, refreshTokenExpiration, providerName, tokenConfig)
+      _saveOAuth2UserTokens(
+        req,
+        accessToken,
+        refreshToken,
+        accessTokenExpiration,
+        refreshTokenExpiration,
+        providerName,
+        tokenConfig,
+      )
         .then(() => {
           expect(req.user.tokens[0].kind).to.equal('quickbooks');
           expect(req.user.quickbooks).to.equal('some-realm-id');
@@ -409,7 +498,15 @@ describe('Passport Config', () => {
       const providerName = 'quickbooks';
       const tokenConfig = { quickbooks: 'some-realm-id' };
 
-      _saveOAuth2UserTokens(req, accessToken, refreshToken, accessTokenExpiration, refreshTokenExpiration, providerName, tokenConfig)
+      _saveOAuth2UserTokens(
+        req,
+        accessToken,
+        refreshToken,
+        accessTokenExpiration,
+        refreshTokenExpiration,
+        providerName,
+        tokenConfig,
+      )
         .then(() => {
           // Verify that findById was called with the correct user ID
           expect(userStub.calledWith(req.user._id)).to.be.true;
@@ -452,12 +549,26 @@ describe('Passport Config', () => {
       const providerName = 'google';
       const tokenConfig = {};
 
-      _saveOAuth2UserTokens(req, accessToken, refreshToken, accessTokenExpiration, refreshTokenExpiration, providerName, tokenConfig)
+      _saveOAuth2UserTokens(
+        req,
+        accessToken,
+        refreshToken,
+        accessTokenExpiration,
+        refreshTokenExpiration,
+        providerName,
+        tokenConfig,
+      )
         .then(() => {
           expect(req.user.tokens).to.have.lengthOf(3);
-          expect(req.user.tokens.find((t) => t.kind === 'facebook').accessToken).to.equal('facebook-token');
-          expect(req.user.tokens.find((t) => t.kind === 'github').accessToken).to.equal('github-token');
-          expect(req.user.tokens.find((t) => t.kind === 'google').accessToken).to.equal('new-google-token');
+          expect(req.user.tokens.find((t) => t.kind === 'facebook').accessToken).to.equal(
+            'facebook-token',
+          );
+          expect(req.user.tokens.find((t) => t.kind === 'github').accessToken).to.equal(
+            'github-token',
+          );
+          expect(req.user.tokens.find((t) => t.kind === 'google').accessToken).to.equal(
+            'new-google-token',
+          );
           done();
         })
         .catch(done);
@@ -471,7 +582,15 @@ describe('Passport Config', () => {
       const providerName = 'quickbooks';
       const tokenConfig = {};
 
-      _saveOAuth2UserTokens(req, accessToken, refreshToken, accessTokenExpiration, refreshTokenExpiration, providerName, tokenConfig)
+      _saveOAuth2UserTokens(
+        req,
+        accessToken,
+        refreshToken,
+        accessTokenExpiration,
+        refreshTokenExpiration,
+        providerName,
+        tokenConfig,
+      )
         .then(() => {
           const token = req.user.tokens[0];
 
@@ -483,7 +602,13 @@ describe('Passport Config', () => {
           expect(token).to.have.property('refreshTokenExpires');
 
           // Verify no unexpected properties
-          const expectedKeys = ['kind', 'accessToken', 'accessTokenExpires', 'refreshToken', 'refreshTokenExpires'];
+          const expectedKeys = [
+            'kind',
+            'accessToken',
+            'accessTokenExpires',
+            'refreshToken',
+            'refreshTokenExpires',
+          ];
           expect(Object.keys(token).sort()).to.deep.equal(expectedKeys.sort());
 
           // Verify correct types
@@ -522,7 +647,15 @@ describe('Passport Config', () => {
       const providerName = 'google';
       const tokenConfig = {};
 
-      _saveOAuth2UserTokens(req, accessToken, refreshToken, accessTokenExpiration, refreshTokenExpiration, providerName, tokenConfig)
+      _saveOAuth2UserTokens(
+        req,
+        accessToken,
+        refreshToken,
+        accessTokenExpiration,
+        refreshTokenExpiration,
+        providerName,
+        tokenConfig,
+      )
         .then((savedUser) => {
           expect(savedUser.tokens).to.be.an('array');
           expect(savedUser.tokens).to.have.lengthOf(1);

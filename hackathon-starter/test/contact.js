@@ -83,7 +83,13 @@ describe('Contact Controller', () => {
       request(app)
         .post('/contact')
         .type('form')
-        .send({ _csrf: 'testcsrf', name: '', email: '', message: 'Hello', 'g-recaptcha-response': 'token' })
+        .send({
+          _csrf: 'testcsrf',
+          name: '',
+          email: '',
+          message: 'Hello',
+          'g-recaptcha-response': 'token',
+        })
         .expect(302)
         .expect('Location', '/contact')
         .end((err) => {
@@ -97,7 +103,13 @@ describe('Contact Controller', () => {
       request(app)
         .post('/contact')
         .type('form')
-        .send({ _csrf: 'testcsrf', name: 'Test', email: 'test@example.com', message: '', 'g-recaptcha-response': 'token' })
+        .send({
+          _csrf: 'testcsrf',
+          name: 'Test',
+          email: 'test@example.com',
+          message: '',
+          'g-recaptcha-response': 'token',
+        })
         .expect(302)
         .expect('Location', '/contact')
         .end((err) => {
@@ -111,7 +123,13 @@ describe('Contact Controller', () => {
       request(app)
         .post('/contact')
         .type('form')
-        .send({ _csrf: 'testcsrf', name: 'Test', email: 'test@example.com', message: 'Hello', 'g-recaptcha-response': '' })
+        .send({
+          _csrf: 'testcsrf',
+          name: 'Test',
+          email: 'test@example.com',
+          message: 'Hello',
+          'g-recaptcha-response': '',
+        })
         .expect(302)
         .expect('Location', '/contact')
         .end((err) => {
@@ -125,7 +143,13 @@ describe('Contact Controller', () => {
       request(app)
         .post('/contact')
         .type('form')
-        .send({ _csrf: 'testcsrf', name: 'Test', email: 'test@example.com', message: 'Hello', 'g-recaptcha-response': 'token' })
+        .send({
+          _csrf: 'testcsrf',
+          name: 'Test',
+          email: 'test@example.com',
+          message: 'Hello',
+          'g-recaptcha-response': 'token',
+        })
         .expect(302)
         .expect('Location', '/contact')
         .end((err) => {
@@ -140,7 +164,13 @@ describe('Contact Controller', () => {
       request(app)
         .post('/contact')
         .type('form')
-        .send({ _csrf: 'testcsrf', name: 'Test', email: 'test@example.com', message: 'Hello', 'g-recaptcha-response': 'token' })
+        .send({
+          _csrf: 'testcsrf',
+          name: 'Test',
+          email: 'test@example.com',
+          message: 'Hello',
+          'g-recaptcha-response': 'token',
+        })
         .expect(302)
         .expect('Location', '/contact')
         .end((err) => {

@@ -17,7 +17,7 @@ const rateLimit = require('express-rate-limit');
 /**
  * Load environment variables from .env file, where API keys and passwords are configured.
  */
-dotenv.config({ path: '.env.example' });
+dotenv.config();
 
 /**
  * Set config values
@@ -73,6 +73,7 @@ const contactController = require('./controllers/contact');
  * API keys and Passport configuration.
  */
 const passportConfig = require('./config/passport');
+const { ensureAuthenticated } = require('./config/passport');
 
 /**
  * Request logging configuration
@@ -145,7 +146,13 @@ app.use((req, res, next) => {
 const isSafeRedirect = (url) => /^\/[a-zA-Z0-9/_-]*$/.test(url);
 app.use((req, res, next) => {
   // After successful login, redirect back to the intended page
-  if (!req.user && req.path !== '/login' && req.path !== '/signup' && !req.path.match(/^\/auth/) && !req.path.match(/\./)) {
+  if (
+    !req.user &&
+    req.path !== '/login' &&
+    req.path !== '/signup' &&
+    !req.path.match(/^\/auth/) &&
+    !req.path.match(/\./)
+  ) {
     const returnTo = req.originalUrl;
     if (isSafeRedirect(returnTo)) {
       req.session.returnTo = returnTo;
@@ -163,18 +170,50 @@ app.use((req, res, next) => {
   next();
 });
 app.use('/', express.static(path.join(__dirname, 'public'), { maxAge: 31557600000 }));
-app.use('/js/lib', express.static(path.join(__dirname, 'node_modules/chart.js/dist'), { maxAge: 31557600000 }));
-app.use('/js/lib', express.static(path.join(__dirname, 'node_modules/@popperjs/core/dist/umd'), { maxAge: 31557600000 }));
-app.use('/js/lib', express.static(path.join(__dirname, 'node_modules/bootstrap/dist/js'), { maxAge: 31557600000 }));
-app.use('/js/lib', express.static(path.join(__dirname, 'node_modules/jquery/dist'), { maxAge: 31557600000 }));
-app.use('/webfonts', express.static(path.join(__dirname, 'node_modules/@fortawesome/fontawesome-free/webfonts'), { maxAge: 31557600000 }));
-app.use('/image-cache', express.static(path.join(__dirname, 'tmp/image-cache'), { maxAge: 31557600000 }));
+app.use(
+  '/js/lib',
+  express.static(path.join(__dirname, 'node_modules/chart.js/dist'), {
+    maxAge: 31557600000,
+  }),
+);
+app.use(
+  '/js/lib',
+  express.static(path.join(__dirname, 'node_modules/@popperjs/core/dist/umd'), {
+    maxAge: 31557600000,
+  }),
+);
+app.use(
+  '/js/lib',
+  express.static(path.join(__dirname, 'node_modules/bootstrap/dist/js'), {
+    maxAge: 31557600000,
+  }),
+);
+app.use(
+  '/js/lib',
+  express.static(path.join(__dirname, 'node_modules/jquery/dist'), {
+    maxAge: 31557600000,
+  }),
+);
+app.use(
+  '/webfonts',
+  express.static(path.join(__dirname, 'node_modules/@fortawesome/fontawesome-free/webfonts'), {
+    maxAge: 31557600000,
+  }),
+);
+app.use(
+  '/image-cache',
+  express.static(path.join(__dirname, 'tmp/image-cache'), {
+    maxAge: 31557600000,
+  }),
+);
 
 /**
  * Analytics IDs needed thru layout.pug; set as express local so we don't have to pass them with each render call
  */
 app.locals.FACEBOOK_ID = process.env.FACEBOOK_ID ? process.env.FACEBOOK_ID : null;
-app.locals.GOOGLE_ANALYTICS_ID = process.env.GOOGLE_ANALYTICS_ID ? process.env.GOOGLE_ANALYTICS_ID : null;
+app.locals.GOOGLE_ANALYTICS_ID = process.env.GOOGLE_ANALYTICS_ID
+  ? process.env.GOOGLE_ANALYTICS_ID
+  : null;
 app.locals.FACEBOOK_PIXEL_ID = process.env.FACEBOOK_PIXEL_ID ? process.env.FACEBOOK_PIXEL_ID : null;
 
 /**
@@ -194,12 +233,20 @@ app.post('/signup', userController.postSignup);
 app.get('/contact', strictLimiter, contactController.getContact);
 app.post('/contact', contactController.postContact);
 app.get('/account/verify', passportConfig.isAuthenticated, userController.getVerifyEmail);
-app.get('/account/verify/:token', passportConfig.isAuthenticated, userController.getVerifyEmailToken);
+app.get(
+  '/account/verify/:token',
+  passportConfig.isAuthenticated,
+  userController.getVerifyEmailToken,
+);
 app.get('/account', passportConfig.isAuthenticated, userController.getAccount);
 app.post('/account/profile', passportConfig.isAuthenticated, userController.postUpdateProfile);
 app.post('/account/password', passportConfig.isAuthenticated, userController.postUpdatePassword);
 app.post('/account/delete', passportConfig.isAuthenticated, userController.postDeleteAccount);
-app.post('/account/logout-everywhere', passportConfig.isAuthenticated, userController.postLogoutEverywhere);
+app.post(
+  '/account/logout-everywhere',
+  passportConfig.isAuthenticated,
+  userController.postLogoutEverywhere,
+);
 app.get('/account/unlink/:provider', passportConfig.isAuthenticated, userController.getOauthUnlink);
 
 /**
@@ -208,30 +255,77 @@ app.get('/account/unlink/:provider', passportConfig.isAuthenticated, userControl
 app.get('/api', apiController.getApi);
 app.get('/api/lastfm', apiController.getLastfm);
 app.get('/api/nyt', apiController.getNewYorkTimes);
-app.get('/api/steam', passportConfig.isAuthenticated, passportConfig.isAuthorized, apiController.getSteam);
+app.get(
+  '/api/steam',
+  passportConfig.isAuthenticated,
+  passportConfig.isAuthorized,
+  apiController.getSteam,
+);
 app.get('/api/stripe', apiController.getStripe);
 app.post('/api/stripe', apiController.postStripe);
 app.get('/api/scraping', apiController.getScraping);
 app.get('/api/twilio', apiController.getTwilio);
 app.post('/api/twilio', apiController.postTwilio);
 app.get('/api/foursquare', apiController.getFoursquare);
-app.get('/api/tumblr', passportConfig.isAuthenticated, passportConfig.isAuthorized, apiController.getTumblr);
-app.get('/api/facebook', passportConfig.isAuthenticated, passportConfig.isAuthorized, apiController.getFacebook);
+app.get(
+  '/api/tumblr',
+  passportConfig.isAuthenticated,
+  passportConfig.isAuthorized,
+  apiController.getTumblr,
+);
+app.get(
+  '/api/facebook',
+  passportConfig.isAuthenticated,
+  passportConfig.isAuthorized,
+  apiController.getFacebook,
+);
 app.get('/api/github', apiController.getGithub);
-app.get('/api/twitch', passportConfig.isAuthenticated, passportConfig.isAuthorized, apiController.getTwitch);
+app.get(
+  '/api/twitch',
+  passportConfig.isAuthenticated,
+  passportConfig.isAuthorized,
+  apiController.getTwitch,
+);
 app.get('/api/paypal', apiController.getPayPal);
 app.get('/api/paypal/success', apiController.getPayPalSuccess);
 app.get('/api/paypal/cancel', apiController.getPayPalCancel);
 app.get('/api/lob', apiController.getLob);
 app.get('/api/upload', lusca({ csrf: true }), apiController.getFileUpload);
-app.post('/api/upload', strictLimiter, apiController.uploadMiddleware, lusca({ csrf: true }), apiController.postFileUpload);
+app.post(
+  '/api/upload',
+  strictLimiter,
+  apiController.uploadMiddleware,
+  lusca({ csrf: true }),
+  apiController.postFileUpload,
+);
 app.get('/api/here-maps', apiController.getHereMaps);
 app.get('/api/google-maps', apiController.getGoogleMaps);
-app.get('/api/google/drive', passportConfig.isAuthenticated, passportConfig.isAuthorized, apiController.getGoogleDrive);
+app.get(
+  '/api/google/drive',
+  passportConfig.isAuthenticated,
+  passportConfig.isAuthorized,
+  apiController.getGoogleDrive,
+);
 app.get('/api/chart', apiController.getChart);
-app.get('/api/google/sheets', passportConfig.isAuthenticated, passportConfig.isAuthorized, apiController.getGoogleSheets);
-app.get('/api/quickbooks', passportConfig.isAuthenticated, passportConfig.isAuthorized, apiController.getQuickbooks);
+app.get(
+  '/api/google/sheets',
+  passportConfig.isAuthenticated,
+  passportConfig.isAuthorized,
+  apiController.getGoogleSheets,
+);
+app.get(
+  '/api/quickbooks',
+  passportConfig.isAuthenticated,
+  passportConfig.isAuthorized,
+  apiController.getQuickbooks,
+);
 app.get('/api/trakt', apiController.getTrakt);
+app.get(
+  '/api/spotify', 
+  passportConfig.isAuthenticated, 
+  apiController.getSpotify
+);
+
 
 /**
  * AI Integrations and Boilerplate example routes.
@@ -242,7 +336,13 @@ app.post('/ai/openai-moderation', aiController.postOpenAIModeration);
 app.get('/ai/togetherai-classifier', aiController.getTogetherAIClassifier);
 app.post('/ai/togetherai-classifier', aiController.postTogetherAIClassifier);
 app.get('/ai/togetherai-camera', lusca({ csrf: true }), aiController.getTogetherAICamera);
-app.post('/ai/togetherai-camera', strictLimiter, aiController.imageUploadMiddleware, lusca({ csrf: true }), aiController.postTogetherAICamera);
+app.post(
+  '/ai/togetherai-camera',
+  strictLimiter,
+  aiController.imageUploadMiddleware,
+  lusca({ csrf: true }),
+  aiController.postTogetherAICamera,
+);
 app.get('/ai/rag', aiController.getRag);
 app.post('/ai/rag/ingest', aiController.postRagIngest);
 app.post('/ai/rag/ask', aiController.postRagAsk);
@@ -256,15 +356,26 @@ app.post('/ai/rag/ask', aiController.postRagAsk);
  */
 app.get('/auth/failure', (req, res) => {
   // Check if a flash message for 'errors' already exists in the session (do not consume it)
-  const hasErrorFlash = req.session && req.session.flash && req.session.flash.errors && req.session.flash.errors.length > 0;
+  const hasErrorFlash =
+    req.session &&
+    req.session.flash &&
+    req.session.flash.errors &&
+    req.session.flash.errors.length > 0;
 
   if (!hasErrorFlash) {
-    req.flash('errors', { msg: 'Authentication failed or provider account is already linked.' });
+    req.flash('errors', {
+      msg: 'Authentication failed or provider account is already linked.',
+    });
   }
   const { returnTo } = req.session;
   req.session.returnTo = undefined;
   // Prevent infinite loop: if returnTo is the current URL or an /auth/ route, redirect to /
-  if (!returnTo || !isSafeRedirect(returnTo) || returnTo === req.originalUrl || /^\/auth\//.test(returnTo)) {
+  if (
+    !returnTo ||
+    !isSafeRedirect(returnTo) ||
+    returnTo === req.originalUrl ||
+    /^\/auth\//.test(returnTo)
+  ) {
     res.redirect('/');
   } else {
     res.redirect(returnTo);
@@ -275,53 +386,105 @@ app.get('/auth/failure', (req, res) => {
  * OAuth authentication routes. (Sign in)
  */
 app.get('/auth/facebook', passport.authenticate('facebook'));
-app.get('/auth/facebook/callback', passport.authenticate('facebook', { failureRedirect: '/auth/failure' }), (req, res) => {
-  res.redirect(req.session.returnTo || '/');
-});
+app.get(
+  '/auth/facebook/callback',
+  passport.authenticate('facebook', { failureRedirect: '/auth/failure' }),
+  (req, res) => {
+    res.redirect(req.session.returnTo || '/');
+  },
+);
 app.get('/auth/github', passport.authenticate('github'));
-app.get('/auth/github/callback', passport.authenticate('github', { failureRedirect: '/auth/failure' }), (req, res) => {
-  res.redirect(req.session.returnTo || '/');
-});
+app.get(
+  '/auth/github/callback',
+  passport.authenticate('github', { failureRedirect: '/auth/failure' }),
+  (req, res) => {
+    res.redirect(req.session.returnTo || '/');
+  },
+);
 app.get('/auth/google', passport.authenticate('google'));
-app.get('/auth/google/callback', passport.authenticate('google', { failureRedirect: '/auth/failure' }), (req, res) => {
-  res.redirect(req.session.returnTo || '/');
-});
+app.get(
+  '/auth/google/callback',
+  passport.authenticate('google', { failureRedirect: '/auth/failure' }),
+  (req, res) => {
+    res.redirect(req.session.returnTo || '/');
+  },
+);
 app.get('/auth/x', passport.authenticate('X'));
-app.get('/auth/x/callback', passport.authenticate('X', { failureRedirect: '/auth/failure' }), (req, res) => {
-  res.redirect(req.session.returnTo || '/');
-});
+app.get(
+  '/auth/x/callback',
+  passport.authenticate('X', { failureRedirect: '/auth/failure' }),
+  (req, res) => {
+    res.redirect(req.session.returnTo || '/');
+  },
+);
 app.get('/auth/linkedin', passport.authenticate('linkedin'));
-app.get('/auth/linkedin/callback', passport.authenticate('linkedin', { failureRedirect: '/auth/failure' }), (req, res) => {
-  res.redirect(req.session.returnTo || '/');
-});
+app.get(
+  '/auth/linkedin/callback',
+  passport.authenticate('linkedin', { failureRedirect: '/auth/failure' }),
+  (req, res) => {
+    res.redirect(req.session.returnTo || '/');
+  },
+);
 app.get('/auth/twitch', passport.authenticate('twitch'));
-app.get('/auth/twitch/callback', passport.authenticate('twitch', { failureRedirect: '/auth/failure' }), (req, res) => {
-  res.redirect(req.session.returnTo || '/');
-});
+app.get(
+  '/auth/twitch/callback',
+  passport.authenticate('twitch', { failureRedirect: '/auth/failure' }),
+  (req, res) => {
+    res.redirect(req.session.returnTo || '/');
+  },
+);
 app.get('/auth/discord', passport.authenticate('discord'));
-app.get('/auth/discord/callback', passport.authenticate('discord', { failureRedirect: '/auth/failure' }), (req, res) => {
-  res.redirect(req.session.returnTo || '/');
-});
+app.get(
+  '/auth/discord/callback',
+  passport.authenticate('discord', { failureRedirect: '/auth/failure' }),
+  (req, res) => {
+    res.redirect(req.session.returnTo || '/');
+  },
+);
+app.get('/auth/spotify', passport.authenticate('spotify', { scope: ['user-read-email', 'user-read-private'] }));
+app.get(
+  '/auth/spotify/callback',
+  passport.authenticate('spotify', { failureRedirect: '/auth/failure' }),
+  (req, res) => {
+    res.redirect(req.session.returnTo || '/');
+  },
+);
 
 /**
  * OAuth authorization routes. (API examples)
  */
 app.get('/auth/tumblr', passport.authorize('tumblr'));
-app.get('/auth/tumblr/callback', passport.authorize('tumblr', { failureRedirect: '/auth/failure' }), (req, res) => {
-  res.redirect(req.session.returnTo || '/');
-});
+app.get(
+  '/auth/tumblr/callback',
+  passport.authorize('tumblr', { failureRedirect: '/auth/failure' }),
+  (req, res) => {
+    res.redirect(req.session.returnTo || '/');
+  },
+);
 app.get('/auth/steam', passport.authorize('steam-openid'));
-app.get('/auth/steam/callback', passport.authorize('steam-openid', { failureRedirect: '/auth/failure' }), (req, res) => {
-  res.redirect(req.session.returnTo || '/');
-});
+app.get(
+  '/auth/steam/callback',
+  passport.authorize('steam-openid', { failureRedirect: '/auth/failure' }),
+  (req, res) => {
+    res.redirect(req.session.returnTo || '/');
+  },
+);
 app.get('/auth/trakt', passport.authorize('trakt'));
-app.get('/auth/trakt/callback', passport.authorize('trakt', { failureRedirect: '/auth/failure' }), (req, res) => {
-  res.redirect(req.session.returnTo || '/');
-});
+app.get(
+  '/auth/trakt/callback',
+  passport.authorize('trakt', { failureRedirect: '/auth/failure' }),
+  (req, res) => {
+    res.redirect(req.session.returnTo || '/');
+  },
+);
 app.get('/auth/quickbooks', passport.authorize('quickbooks'));
-app.get('/auth/quickbooks/callback', passport.authorize('quickbooks', { failureRedirect: '/auth/failure' }), (req, res) => {
-  res.redirect(req.session.returnTo || '/');
-});
+app.get(
+  '/auth/quickbooks/callback',
+  passport.authorize('quickbooks', { failureRedirect: '/auth/failure' }),
+  (req, res) => {
+    res.redirect(req.session.returnTo || '/');
+  },
+);
 
 /**
  * Error Handler.
@@ -358,7 +521,9 @@ To avoid this, set BASE_URL to the HTTPS endpoint and always access the app thro
 `,
     );
   } else if (app.get('port') !== port) {
-    console.warn(`WARNING: The BASE_URL environment variable and the App have a port mismatch. If you plan to view the app in your browser using the localhost address, you may need to adjust one of the ports to make them match. BASE_URL: ${BASE_URL}\n`);
+    console.warn(
+      `WARNING: The BASE_URL environment variable and the App have a port mismatch. If you plan to view the app in your browser using the localhost address, you may need to adjust one of the ports to make them match. BASE_URL: ${BASE_URL}\n`,
+    );
   }
 
   console.log(`App is running on http://localhost:${app.get('port')} in ${app.get('env')} mode.`);

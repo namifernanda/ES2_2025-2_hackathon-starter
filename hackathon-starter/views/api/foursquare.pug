@@ -29,7 +29,12 @@ block content
           tr
             td.d-xs
               if venue.categories && venue.categories.length > 0
-                img(src=venue.categories[0].icon.prefix + '32' + venue.categories[0].icon.suffix, alt=venue.categories[0].name, width='32', height='32')
+                img(
+                  src=venue.categories[0].icon.prefix + '32' + venue.categories[0].icon.suffix,
+                  alt=venue.categories[0].name,
+                  width='32',
+                  height='32'
+                )
               else
                 | N/A
             td= venue.name
@@ -57,6 +62,10 @@ block content
     .row
       each photo in venuePhotos
         .col-md-4
-          img.img-thumbnail(src=photo.prefix + '400x400' + photo.suffix, alt=venueDetail.name, width='100%')
+          img.img-thumbnail(
+            src=photo.prefix + '400x400' + photo.suffix,
+            alt=venueDetail.name,
+            width='100%'
+          )
   else
     p No photos available.

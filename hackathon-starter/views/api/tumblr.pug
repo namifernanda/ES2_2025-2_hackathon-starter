@@ -33,7 +33,13 @@ block content
       .row
         .col-8
           if blog.avatar && blog.avatar.length > 0
-            img(src=blog.avatar[0].url, alt='Avatar', width=50, height=50, style='float: left; margin-right: 10px')
+            img(
+              src=blog.avatar[0].url,
+              alt='Avatar',
+              width=50,
+              height=50,
+              style='float: left; margin-right: 10px'
+            )
           h4
             a(href=blog.url, target='_blank') #{ blog.name }
           h6 #{ blog.title } | #{ blog.description }

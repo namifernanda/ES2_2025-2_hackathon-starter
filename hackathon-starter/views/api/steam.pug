@@ -6,7 +6,10 @@ block content
       i.fab.fa-steam-square.fa-sm.iconpadding
       | Steam Web API
   .btn-group.d-flex(role='group')
-    a.btn.btn-primary.w-100(href='https://developer.valvesoftware.com/wiki/Steam_Web_API', target='_blank')
+    a.btn.btn-primary.w-100(
+      href='https://developer.valvesoftware.com/wiki/Steam_Web_API',
+      target='_blank'
+    )
       i.far.fa-check-square.fa-sm.iconpadding
       | API Overview
 
@@ -45,4 +48,7 @@ block content
     br
     each game in ownedGames.games
       a(href='https://store.steampowered.com/app/' + game.appid)
-        img.thumbnail(src='https://cdn.cloudflare.steamstatic.com/steam/apps/' + game.appid + '/header.jpg', width=92)
+        img.thumbnail(
+          src='https://cdn.cloudflare.steamstatic.com/steam/apps/' + game.appid + '/header.jpg',
+          width=92
+        )

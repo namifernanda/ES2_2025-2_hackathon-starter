@@ -13,7 +13,13 @@ const twilioClient = require('twilio')(process.env.TWILIO_SID, process.env.TWILI
 const googledrive = require('@googleapis/drive');
 const googlesheets = require('@googleapis/sheets');
 const validator = require('validator');
-const { Configuration: LobConfiguration, LetterEditable, LettersApi, ZipEditable, ZipLookupsApi } = require('@lob/lob-typescript-sdk');
+const {
+  Configuration: LobConfiguration,
+  LetterEditable,
+  LettersApi,
+  ZipEditable,
+  ZipLookupsApi,
+} = require('@lob/lob-typescript-sdk');
 const fs = require('fs');
 
 /**
@@ -23,6 +29,7 @@ const fs = require('fs');
 exports.getApi = (req, res) => {
   res.render('api/index', {
     title: 'API Examples',
+    spotify: process.env.SPOTIFY_ID,
   });
 };
 
@@ -70,7 +77,15 @@ exports.getTumblr = async (req, res, next) => {
   // This function is not going to making any actual calls to
   // tumblr's /request_token or /access_token endpoints.
   function getTumblrAuthHeader(url, method) {
-    const oauth = new OAuth('https://www.tumblr.com/oauth/request_token', 'https://www.tumblr.com/oauth/access_token', process.env.TUMBLR_KEY, process.env.TUMBLR_SECRET, '1.0A', null, 'HMAC-SHA1');
+    const oauth = new OAuth(
+      'https://www.tumblr.com/oauth/request_token',
+      'https://www.tumblr.com/oauth/access_token',
+      process.env.TUMBLR_KEY,
+      process.env.TUMBLR_SECRET,
+      '1.0A',
+      null,
+      'HMAC-SHA1',
+    );
     return oauth.authHeader(url, token.accessToken, token.tokenSecret, method);
   }
 
@@ -86,7 +101,9 @@ exports.getTumblr = async (req, res, next) => {
     // Get blog posts (public API, doesn't require OAuth)
     const blogId = 'peacecorps.tumblr.com';
     const postType = 'photo';
-    const blogResponse = await fetch(`https://api.tumblr.com/v2/blog/${blogId}/posts/${postType}?api_key=${process.env.TUMBLR_KEY}`);
+    const blogResponse = await fetch(
+      `https://api.tumblr.com/v2/blog/${blogId}/posts/${postType}?api_key=${process.env.TUMBLR_KEY}`,
+    );
     if (!blogResponse.ok) throw new Error('Failed to fetch blog posts');
     const blogData = await blogResponse.json();
 
@@ -108,9 +125,14 @@ exports.getTumblr = async (req, res, next) => {
 exports.getFacebook = async (req, res, next) => {
   const token = req.user.tokens.find((token) => token.kind === 'facebook');
   const secret = process.env.FACEBOOK_SECRET;
-  const appsecretProof = crypto.createHmac('sha256', secret).update(token.accessToken).digest('hex');
+  const appsecretProof = crypto
+    .createHmac('sha256', secret)
+    .update(token.accessToken)
+    .digest('hex');
   try {
-    const response = await fetch(`https://graph.facebook.com/${req.user.facebook}?fields=id,name,email,first_name,last_name,gender,link,locale,timezone&access_token=${token.accessToken}&appsecret_proof=${appsecretProof}`);
+    const response = await fetch(
+      `https://graph.facebook.com/${req.user.facebook}?fields=id,name,email,first_name,last_name,gender,link,locale,timezone&access_token=${token.accessToken}&appsecret_proof=${appsecretProof}`,
+    );
     if (!response.ok) {
       const error = await response.json();
       throw new Error(error.message || 'Failed to fetch Facebook data');
@@ -162,7 +184,10 @@ exports.getGithub = async (req, res, next) => {
   } else if (!req.user.tokens || !req.user.tokens.find((token) => token.kind === 'github')) {
     authFailure = 'NotGitHubAuthorized';
   }
-  const githubToken = req.user && req.user.tokens && req.user.tokens.find((token) => token.kind === 'github') ? req.user.tokens.find((token) => token.kind === 'github').accessToken : null;
+  const githubToken =
+    req.user && req.user.tokens && req.user.tokens.find((token) => token.kind === 'github')
+      ? req.user.tokens.find((token) => token.kind === 'github').accessToken
+      : null;
 
   let github;
   let userInfo;
@@ -270,12 +295,16 @@ exports.getNewYorkTimes = async (req, res, next) => {
     const contentType = response.headers.get('content-type') || '';
     if (!response.ok) {
       const bodyText = await response.text();
-      console.error(`[NYT API] Error response:\nStatus: ${response.status} ${response.statusText}\nHeaders: ${JSON.stringify([...response.headers])}\nBody (first 500 chars):\n${bodyText.slice(0, 500)}`);
+      console.error(
+        `[NYT API] Error response:\nStatus: ${response.status} ${response.statusText}\nHeaders: ${JSON.stringify([...response.headers])}\nBody (first 500 chars):\n${bodyText.slice(0, 500)}`,
+      );
       throw new Error(`New York Times API - ${response.status} ${response.statusText}`);
     }
     if (!contentType.includes('application/json')) {
       const bodyText = await response.text();
-      console.error(`[NYT API] Unexpected content-type: ${contentType}\nBody (first 500 chars):\n${bodyText.slice(0, 500)}`);
+      console.error(
+        `[NYT API] Unexpected content-type: ${contentType}\nBody (first 500 chars):\n${bodyText.slice(0, 500)}`,
+      );
       throw new Error('NYT API did not return JSON. Check your API key and endpoint.');
     }
     const data = await response.json();
@@ -377,7 +406,10 @@ exports.getSteam = async (req, res, next) => {
   };
   // get the list of the recently played games, pick the most recent one and get its achievements
   const getPlayerAchievements = async () => {
-    const recentGamesURL = makeURL('http://api.steampowered.com/IPlayerService/GetRecentlyPlayedGames/v0001/', params);
+    const recentGamesURL = makeURL(
+      'http://api.steampowered.com/IPlayerService/GetRecentlyPlayedGames/v0001/',
+      params,
+    );
     try {
       const response = await fetch(recentGamesURL);
       if (!response.ok) {
@@ -393,7 +425,10 @@ exports.getSteam = async (req, res, next) => {
         return null;
       }
       params.appid = responseData.response.games[0].appid;
-      const achievementsURL = makeURL('http://api.steampowered.com/ISteamUserStats/GetPlayerAchievements/v0001/', params);
+      const achievementsURL = makeURL(
+        'http://api.steampowered.com/ISteamUserStats/GetPlayerAchievements/v0001/',
+        params,
+      );
       const achievementsResponse = await fetch(achievementsURL);
       if (!achievementsResponse.ok) {
         // handle private profile or invalid key
@@ -501,7 +536,16 @@ exports.postStripe = (req, res) => {
 };
 
 // Twilio Sandbox numbers https://www.twilio.com/docs/iam/test-credentials
-const sandboxNumbers = ['+15005550001', '+15005550002', '+15005550003', '+15005550004', '+15005550006', '+15005550007', '+15005550008', '+15005550009'];
+const sandboxNumbers = [
+  '+15005550001',
+  '+15005550002',
+  '+15005550003',
+  '+15005550004',
+  '+15005550006',
+  '+15005550007',
+  '+15005550008',
+  '+15005550009',
+];
 
 /**
  * GET /api/twilio
@@ -561,13 +605,18 @@ exports.postTwilio = async (req, res) => {
       21611: 'The "From" phone number has an SMS message queue that is full.',
       21211: 'The "To" phone number is invalid.',
       21612: 'We cannot route a message to this number.',
-      21408: 'The "To" phone number is international, and we cannot send international messages at this time.',
+      21408:
+        'The "To" phone number is international, and we cannot send international messages at this time.',
       21614: 'The "To" phone number is incapable of receiving SMS messages.',
-      21610: 'The "To" phone number has been unsubscribed and we can not send messages to it from your account.',
+      21610:
+        'The "To" phone number has been unsubscribed and we can not send messages to it from your account.',
     };
 
     // Determine the user-friendly error message or send a generic error if not found in our list
-    const friendlyMessage = error.code && errorMessages[error.code] ? errorMessages[error.code] : 'An error occurred while sending the message. Please try again later.';
+    const friendlyMessage =
+      error.code && errorMessages[error.code]
+        ? errorMessages[error.code]
+        : 'An error occurred while sending the message. Please try again later.';
 
     // Flash the user-friendly message
     req.flash('errors', { msg: friendlyMessage });
@@ -597,12 +646,15 @@ exports.getTwitch = async (req, res, next) => {
     return data;
   };
   const getFollowers = async (userID) => {
-    const response = await fetch(`https://api.twitch.tv/helix/channels/followers?broadcaster_id=${userID}`, {
-      headers: {
-        Authorization: `Bearer ${token.accessToken}`,
-        'Client-ID': twitchClientID,
+    const response = await fetch(
+      `https://api.twitch.tv/helix/channels/followers?broadcaster_id=${userID}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token.accessToken}`,
+          'Client-ID': twitchClientID,
+        },
       },
-    });
+    );
     if (!response.ok) {
       throw new Error(`There was an error while getting followers: ${response.status}`);
     }
@@ -907,7 +959,9 @@ exports.getChart = async (req, res, next) => {
 // Doing this outside of the route handler to avoid blocking the page load behind oauth.
 // For this example we are tring to have a pay botton that when pressed it would initiate a payment
 async function getPayPalAccessToken() {
-  const auth = Buffer.from(`${process.env.PAYPAL_ID}:${process.env.PAYPAL_SECRET}`).toString('base64');
+  const auth = Buffer.from(`${process.env.PAYPAL_ID}:${process.env.PAYPAL_SECRET}`).toString(
+    'base64',
+  );
   const response = await fetch('https://api.sandbox.paypal.com/v1/oauth2/token', {
     method: 'POST',
     headers: {
@@ -985,13 +1039,16 @@ exports.getPayPalSuccess = async (req, res) => {
   try {
     const { orderId } = req.session;
     const accessToken = await getPayPalAccessToken();
-    const response = await fetch(`https://api.sandbox.paypal.com/v2/checkout/orders/${orderId}/capture`, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        'Content-Type': 'application/json',
+    const response = await fetch(
+      `https://api.sandbox.paypal.com/v2/checkout/orders/${orderId}/capture`,
+      {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          'Content-Type': 'application/json',
+        },
       },
-    });
+    );
     if (!response.ok) {
       throw new Error('Failed to capture PayPal payment');
     }
@@ -1156,7 +1213,8 @@ exports.getGoogleDrive = (req, res) => {
     auth: authObj,
   });
 
-  const errorMsgPermission = 'Missing Google Drive access permission. Please unlink and relink your Google account with sufficient permissions under your account settings.';
+  const errorMsgPermission =
+    'Missing Google Drive access permission. Please unlink and relink your Google account with sufficient permissions under your account settings.';
   const errorMsgGeneric = 'There was an error while fetching Google Drive data.';
   drive.files.list({ fields: 'files(iconLink, webViewLink, name)' }, (err, response) => {
     if (err) {
@@ -1186,24 +1244,30 @@ exports.getGoogleSheets = (req, res) => {
     auth: authObj,
   });
 
-  const url = 'https://docs.google.com/spreadsheets/d/1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms/edit#gid=0';
+  const url =
+    'https://docs.google.com/spreadsheets/d/1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms/edit#gid=0';
   const re = /spreadsheets\/d\/([a-zA-Z0-9-_]+)/;
   const id = url.match(re)[1];
 
-  const errorMsgPermission = 'Missing Google sheets access permission. Please unlink and relink your Google account with sufficient permissions under your account settings.';
+  const errorMsgPermission =
+    'Missing Google sheets access permission. Please unlink and relink your Google account with sufficient permissions under your account settings.';
   const errorMsgGeneric = 'There was an error while fetching Google Sheets data.';
-  sheets.spreadsheets.values.get({ spreadsheetId: id, range: 'Class Data!A1:F' }, (err, response) => {
-    if (err) {
-      console.error('Google Sheets API Error:', err);
-      const msg = err.message === 'Insufficient Permission' ? errorMsgPermission : errorMsgGeneric;
-      req.flash('errors', { msg });
-      return res.redirect('/api');
-    }
-    res.render('api/google-sheets', {
-      title: 'Google Sheets API',
-      values: response.data.values,
-    });
-  });
+  sheets.spreadsheets.values.get(
+    { spreadsheetId: id, range: 'Class Data!A1:F' },
+    (err, response) => {
+      if (err) {
+        console.error('Google Sheets API Error:', err);
+        const msg =
+          err.message === 'Insufficient Permission' ? errorMsgPermission : errorMsgGeneric;
+        req.flash('errors', { msg });
+        return res.redirect('/api');
+      }
+      res.render('api/google-sheets', {
+        title: 'Google Sheets API',
+        values: response.data.values,
+      });
+    },
+  );
 };
 
 /**
@@ -1212,7 +1276,11 @@ exports.getGoogleSheets = (req, res) => {
 const formatDate = (isoString) => {
   if (!isoString) return '';
   const date = new Date(isoString);
-  return date.toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
+  return date.toLocaleDateString(undefined, {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
 };
 
 /* Trakt does not permit hotlinking of images, so we need to get the image
@@ -1325,9 +1393,17 @@ async function fetchTraktTrendingMovies(limit) {
     trending.map(async (item) => {
       let imgUrl = null;
       if (item.movie && item.movie.images) {
-        if (item.movie.images.fanart && Array.isArray(item.movie.images.fanart) && item.movie.images.fanart.length > 0) {
+        if (
+          item.movie.images.fanart &&
+          Array.isArray(item.movie.images.fanart) &&
+          item.movie.images.fanart.length > 0
+        ) {
           imgUrl = `https://${item.movie.images.fanart[0].replace(/^https?:\/\//, '')}`;
-        } else if (item.movie.images.poster && Array.isArray(item.movie.images.poster) && item.movie.images.poster.length > 0) {
+        } else if (
+          item.movie.images.poster &&
+          Array.isArray(item.movie.images.poster) &&
+          item.movie.images.poster.length > 0
+        ) {
           imgUrl = `https://${item.movie.images.poster[0].replace(/^https?:\/\//, '')}`;
         }
       }
@@ -1349,9 +1425,17 @@ async function fetchMovieDetails(slug, watchers) {
   const movie = await res.json();
   let imgUrl = null;
   if (movie.images) {
-    if (movie.images.fanart && Array.isArray(movie.images.fanart) && movie.images.fanart.length > 0) {
+    if (
+      movie.images.fanart &&
+      Array.isArray(movie.images.fanart) &&
+      movie.images.fanart.length > 0
+    ) {
       imgUrl = `https://${movie.images.fanart[0].replace(/^https?:\/\//, '')}`;
-    } else if (movie.images.poster && Array.isArray(movie.images.poster) && movie.images.poster.length > 0) {
+    } else if (
+      movie.images.poster &&
+      Array.isArray(movie.images.poster) &&
+      movie.images.poster.length > 0
+    ) {
       imgUrl = `https://${movie.images.poster[0].replace(/^https?:\/\//, '')}`;
     }
   }
@@ -1367,8 +1451,14 @@ async function fetchMovieDetails(slug, watchers) {
   movie.watchers = watchers;
   // Trailer (YouTube embed)
   movie.trailerEmbed = null;
-  if (movie.trailer && (movie.trailer.startsWith('https://youtube.com/') || movie.trailer.startsWith('http://youtu.be/'))) {
-    const match = movie.trailer.match(/v=([a-zA-Z0-9_-]+)/) || movie.trailer.match(/youtu\.be\/([a-zA-Z0-9_-]+)/);
+  if (
+    movie.trailer &&
+    (movie.trailer.startsWith('https://youtube.com/') ||
+      movie.trailer.startsWith('http://youtu.be/'))
+  ) {
+    const match =
+      movie.trailer.match(/v=([a-zA-Z0-9_-]+)/) ||
+      movie.trailer.match(/youtu\.be\/([a-zA-Z0-9_-]+)/);
     if (match && match[1]) {
       movie.trailerEmbed = `https://www.youtube.com/embed/${match[1]}`;
     }
@@ -1443,3 +1533,45 @@ exports.getTrakt = async (req, res, next) => {
     next(error);
   }
 };
+
+/**
+ * GET /api/spotify
+ * Spotify API example.
+ */
+exports.getSpotify = async (req, res, next) => {
+  try {
+    // Encontrar token do Spotify no array de tokens do usuário
+    const token = req.user.tokens.find((token) => token.kind === 'spotify');
+    if (!token) {
+      throw new Error('Spotify token not found');
+    }
+
+    // Fazer requisição à API do Spotify para buscar perfil do usuário
+    const response = await fetch('https://api.spotify.com/v1/me', {
+      headers: {
+        Authorization: `Bearer ${token.accessToken}`,
+      },
+    });
+
+    if (!response.ok) {
+      try {
+        const error = await response.json();
+        throw new Error(error.error?.message || 'Failed to fetch Spotify data');
+      } catch (e) {
+        // If JSON parsing fails, throw a generic message
+        throw new Error('Failed to fetch Spotify data. Response was not valid JSON.');
+      }
+    }
+
+    const profile = await response.json();
+
+    // Renderizar view com os dados do usuário
+    res.render('api/spotify', {
+      title: 'Spotify API',
+      profile,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+

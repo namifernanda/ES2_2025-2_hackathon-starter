@@ -24,7 +24,10 @@ block content
             video#preview.img-fluid(autoplay, muted, style='width: 100%')
             canvas#photoCanvas(style='display: none')
             img#capturedImage.img-fluid(style='display: none', alt='Captured photo')
-            #loadingSpinner.spinner-border.text-primary(style='display: none; position: absolute; top: 50%; left: 50%; margin: -1rem', role='status')
+            #loadingSpinner.spinner-border.text-primary(
+              style='display: none; position: absolute; top: 50%; left: 50%; margin: -1rem',
+              role='status'
+            )
               span.sr-only Loading...
           .d-flex.flex-column.flex-md-row.gap-2
             select#cameraSelect.form-select(style='width: auto')

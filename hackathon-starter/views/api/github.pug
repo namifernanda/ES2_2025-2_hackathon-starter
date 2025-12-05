@@ -6,7 +6,10 @@ block content
     | GitHub API
 
   .btn-group.d-flex(role='group')
-    a.btn.btn-primary.w-100(href='http://developer.github.com/guides/getting-started/', target='_blank')
+    a.btn.btn-primary.w-100(
+      href='http://developer.github.com/guides/getting-started/',
+      target='_blank'
+    )
       i.far.fa-check-square.fa-sm.iconpadding
       | Getting Started
     a.btn.btn-primary.w-100(href='http://developer.github.com/v3/', target='_blank')
@@ -66,12 +69,18 @@ block content
                   |
                   | in
                   |
-                  a(href=event.repo.url.replace('api.github.com/repos', 'github.com'), target='_blank') #{ event.repo.name }
+                  a(
+                    href=event.repo.url.replace('api.github.com/repos', 'github.com'),
+                    target='_blank'
+                  ) #{ event.repo.name }
               else if event.type === 'PushEvent'
                 li
                   | Pushed to
                   |
-                  a(href=event.repo.url.replace('api.github.com/repos', 'github.com'), target='_blank') #{ event.repo.name }
+                  a(
+                    href=event.repo.url.replace('api.github.com/repos', 'github.com'),
+                    target='_blank'
+                  ) #{ event.repo.name }
                   |
                   | (#{ event.payload.ref.replace('refs/heads/', '') })
               else if event.type === 'IssuesEvent'
@@ -82,7 +91,10 @@ block content
                   |
                   | in
                   |
-                  a(href=event.repo.url.replace('api.github.com/repos', 'github.com'), target='_blank') #{ event.repo.name }
+                  a(
+                    href=event.repo.url.replace('api.github.com/repos', 'github.com'),
+                    target='_blank'
+                  ) #{ event.repo.name }
               else if event.type === 'IssueCommentEvent'
                 li
                   | Commented on issue
@@ -91,7 +103,10 @@ block content
                   |
                   | in
                   |
-                  a(href=event.repo.url.replace('api.github.com/repos', 'github.com'), target='_blank') #{ event.repo.name }
+                  a(
+                    href=event.repo.url.replace('api.github.com/repos', 'github.com'),
+                    target='_blank'
+                  ) #{ event.repo.name }
               else if event.type === 'CreateEvent'
                 li
                   | Created #{ event.payload.ref_type }
@@ -101,7 +116,10 @@ block content
                   |
                   | in
                   |
-                  a(href=event.repo.url.replace('api.github.com/repos', 'github.com'), target='_blank') #{ event.repo.name }
+                  a(
+                    href=event.repo.url.replace('api.github.com/repos', 'github.com'),
+                    target='_blank'
+                  ) #{ event.repo.name }
               else if event.type === 'DeleteEvent'
                 li
                   | Deleted #{ event.payload.ref_type }
@@ -110,17 +128,26 @@ block content
                   |
                   | in
                   |
-                  a(href=event.repo.url.replace('api.github.com/repos', 'github.com'), target='_blank') #{ event.repo.name }
+                  a(
+                    href=event.repo.url.replace('api.github.com/repos', 'github.com'),
+                    target='_blank'
+                  ) #{ event.repo.name }
               else if event.type === 'ForkEvent'
                 li
                   | Forked
                   |
-                  a(href=event.repo.url.replace('api.github.com/repos', 'github.com'), target='_blank') #{ event.repo.name }
+                  a(
+                    href=event.repo.url.replace('api.github.com/repos', 'github.com'),
+                    target='_blank'
+                  ) #{ event.repo.name }
               else if event.type === 'WatchEvent'
                 li
                   | #{ event.payload.action === 'started' ? 'Starred' : event.payload.action }
                   |
-                  a(href=event.repo.url.replace('api.github.com/repos', 'github.com'), target='_blank') #{ event.repo.name }
+                  a(
+                    href=event.repo.url.replace('api.github.com/repos', 'github.com'),
+                    target='_blank'
+                  ) #{ event.repo.name }
 
   else
     .alert.alert-warning
@@ -182,4 +209,8 @@ block content
               each stargazer in repoStargazers
                 li.list-inline-item
                   a(href=stargazer.html_url, target='_blank')
-                    img.img-thumbnail(src=stargazer.avatar_url, alt='Stargazer Avatar', style='width: 50px; height: 50px')
+                    img.img-thumbnail(
+                      src=stargazer.avatar_url,
+                      alt='Stargazer Avatar',
+                      style='width: 50px; height: 50px'
+                    )

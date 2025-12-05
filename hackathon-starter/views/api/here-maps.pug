@@ -10,7 +10,10 @@ block content
     a.btn.btn-primary.w-100(href='https://developer.here.com', target='_blank')
       i.far.fa-check-square.fa-sm.iconpadding
       | HERE Developer Portal
-    a.btn.btn-primary.w-100(href='https://developer.here.com/documentation/map-image/topics/resource-map.html', target='_blank')
+    a.btn.btn-primary.w-100(
+      href='https://developer.here.com/documentation/map-image/topics/resource-map.html',
+      target='_blank'
+    )
       i.fas.fa-laptop.fa-sm.iconpadding
       | Image Map Parameters
 
@@ -25,10 +28,26 @@ block content
     #directLineDistance
     | &nbsp;miles.
 
-  script(src='https://js.api.here.com/v3/3.1/mapsjs-core.js', type='text/javascript', charset='utf-8')
-  script(src='https://js.api.here.com/v3/3.1/mapsjs-service.js', type='text/javascript', charset='utf-8')
-  script(src='https://js.api.here.com/v3/3.1/mapsjs-mapevents.js', type='text/javascript', charset='utf-8')
-  script(src='https://js.api.here.com/v3/3.1/mapsjs-ui.js', type='text/javascript', charset='utf-8')
+  script(
+    src='https://js.api.here.com/v3/3.1/mapsjs-core.js',
+    type='text/javascript',
+    charset='utf-8'
+  )
+  script(
+    src='https://js.api.here.com/v3/3.1/mapsjs-service.js',
+    type='text/javascript',
+    charset='utf-8'
+  )
+  script(
+    src='https://js.api.here.com/v3/3.1/mapsjs-mapevents.js',
+    type='text/javascript',
+    charset='utf-8'
+  )
+  script(
+    src='https://js.api.here.com/v3/3.1/mapsjs-ui.js',
+    type='text/javascript',
+    charset='utf-8'
+  )
   link(rel='stylesheet', type='text/css', href='https://js.api.here.com/v3/3.1/mapsjs-ui.css')
 
   script.

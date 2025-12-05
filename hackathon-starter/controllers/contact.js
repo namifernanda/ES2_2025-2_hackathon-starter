@@ -2,12 +2,15 @@ const validator = require('validator');
 const nodemailerConfig = require('../config/nodemailer');
 
 async function validateReCAPTCHA(token) {
-  const response = await fetch(`https://www.google.com/recaptcha/api/siteverify?secret=${process.env.RECAPTCHA_SECRET_KEY}&response=${token}`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/x-www-form-urlencoded; charset=utf-8',
+  const response = await fetch(
+    `https://www.google.com/recaptcha/api/siteverify?secret=${process.env.RECAPTCHA_SECRET_KEY}&response=${token}`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded; charset=utf-8',
+      },
     },
-  });
+  );
   return response.json();
 }
 
@@ -19,7 +22,9 @@ exports.getContact = (req, res) => {
   const unknownUser = !req.user;
 
   if (!process.env.RECAPTCHA_SITE_KEY) {
-    console.warn('\x1b[33mWARNING: RECAPTCHA_SITE_KEY is missing. Add a key to your .env, env variable, or use a WebApp Firewall with an interactive challenge before going to production.\x1b[0m');
+    console.warn(
+      '\x1b[33mWARNING: RECAPTCHA_SITE_KEY is missing. Add a key to your .env, env variable, or use a WebApp Firewall with an interactive challenge before going to production.\x1b[0m',
+    );
   }
 
   res.render('contact', {
@@ -38,13 +43,21 @@ exports.postContact = async (req, res, next) => {
   let fromName;
   let fromEmail;
   if (!req.user) {
-    if (validator.isEmpty(req.body.name)) validationErrors.push({ msg: 'Please enter your name' });
-    if (!validator.isEmail(req.body.email)) validationErrors.push({ msg: 'Please enter a valid email address.' });
+    if (validator.isEmpty(req.body.name)) {
+      validationErrors.push({ msg: 'Please enter your name' });
+    }
+    if (!validator.isEmail(req.body.email)) {
+      validationErrors.push({ msg: 'Please enter a valid email address.' });
+    }
   }
-  if (validator.isEmpty(req.body.message)) validationErrors.push({ msg: 'Please enter your message.' });
+  if (validator.isEmpty(req.body.message)) {
+    validationErrors.push({ msg: 'Please enter your message.' });
+  }
 
   if (!process.env.RECAPTCHA_SITE_KEY) {
-    console.warn('\x1b[33mWARNING: RECAPTCHA_SITE_KEY is missing. Add a key to your .env or use a WebApp Firewall for CAPTCHA validation before going to production.\x1b[0m');
+    console.warn(
+      '\x1b[33mWARNING: RECAPTCHA_SITE_KEY is missing. Add a key to your .env or use a WebApp Firewall for CAPTCHA validation before going to production.\x1b[0m',
+    );
   } else if (!validator.isEmpty(req.body['g-recaptcha-response'])) {
     try {
       const reCAPTCHAResponse = await validateReCAPTCHA(req.body['g-recaptcha-response']);
@@ -53,7 +66,9 @@ exports.postContact = async (req, res, next) => {
       }
     } catch (error) {
       console.error('Error validating reCAPTCHA:', error);
-      validationErrors.push({ msg: 'Error validating reCAPTCHA. Please try again.' });
+      validationErrors.push({
+        msg: 'Error validating reCAPTCHA. Please try again.',
+      });
     }
   } else {
     validationErrors.push({ msg: 'reCAPTCHA response was missing.' });
