@@ -4,7 +4,7 @@ block content
   .pb-2.mt-2.mb-4.border-bottom
     h3 Profile Information
 
-  form(action='/account/profile', method='POST')
+  form(action='/account/profile', method='POST', enctype='multipart/form-data')
     input(type='hidden', name='_csrf', value=_csrf)
     .form-group.row
       label.col-md-3.col-form-label.font-weight-bold.text-right(for='email') Email
@@ -90,6 +90,14 @@ block content
           src=user.profile.picture ? user.profile.picture : user.gravatar(),
           width='100',
           height='100'
+        )
+    .form-group.row
+      label.col-md-3.col-form-label.font-weight-bold.text-right(for='avatar') Upload New Picture
+      .col-md-7.mb-2
+        input#avatar.form-control(
+        type='file',
+        name='picture',
+        accept='image/*'
         )
     .form-group
       .offset-sm-3.col-md-7.pl-2

@@ -14,6 +14,11 @@ const mongoose = require('mongoose');
 const passport = require('passport');
 const rateLimit = require('express-rate-limit');
 
+
+//Change Profile Picture
+const multer = require('multer');
+const upload = require('./config/upload');
+
 /**
  * Load environment variables from .env file, where API keys and passwords are configured.
  */
@@ -126,7 +131,7 @@ app.use(passport.initialize());
 app.use(passport.session());
 app.use(flash());
 app.use((req, res, next) => {
-  if (req.path === '/api/upload' || req.path === '/ai/togetherai-camera') {
+  if (req.path === '/api/upload' || req.path === '/ai/togetherai-camera' || req.path === '/account/profile') {
     // Multer multipart/form-data handling needs to occur before the Lusca CSRF check.
     // WARN: Any path that is not protected by CSRF here should have lusca.csrf() chained
     // in their route handler.
@@ -239,7 +244,7 @@ app.get(
   userController.getVerifyEmailToken,
 );
 app.get('/account', passportConfig.isAuthenticated, userController.getAccount);
-app.post('/account/profile', passportConfig.isAuthenticated, userController.postUpdateProfile);
+app.post('/account/profile', passportConfig.isAuthenticated, upload.single('picture'), userController.postUpdateProfile);
 app.post('/account/password', passportConfig.isAuthenticated, userController.postUpdatePassword);
 app.post('/account/delete', passportConfig.isAuthenticated, userController.postDeleteAccount);
 app.post(
