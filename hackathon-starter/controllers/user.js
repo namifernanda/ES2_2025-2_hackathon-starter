@@ -335,12 +335,19 @@ exports.postUpdateProfile = async (req, res, next) => {
   }
   try {
     const user = await User.findById(req.user.id);
+
     if (user.email !== req.body.email) user.emailVerified = false;
     user.email = req.body.email || '';
     user.profile.name = req.body.name || '';
     user.profile.gender = req.body.gender || '';
     user.profile.location = req.body.location || '';
     user.profile.website = req.body.website || '';
+
+    //Update Profile Picture
+    if (req.file) {
+          user.profile.picture = `/uploads/${req.file.filename}`;
+    }
+
     await user.save();
     req.flash('success', { msg: 'Profile information has been updated.' });
     res.redirect('/account');
